@@ -333,6 +333,19 @@
   .s3ph { position:absolute; left:8px; right:8px; bottom:56px; z-index:3; display:flex; gap:6px; align-items:center; flex-wrap:wrap; background:rgba(255,255,255,.95); border-radius:12px; padding:6px 8px; box-shadow:0 1px 6px rgba(0,0,0,.3); }
   .s3ph b { flex:1 1 160px; font-size:13px; min-width:0; }
   .s3ph button { height:36px; padding:0 10px; border:none; border-radius:999px; background:#0369a1; color:#fff; font-family:inherit; font-weight:900; font-size:13px; }
+  body.touring .sitestage { height:86vh !important; }
+  body.touring #siteStage .maptgl, body.touring #siteStage .v3dbtns, body.touring #siteStage .v3dhint, body.touring #sZoom, body.touring #s3ph { display:none !important; }
+  .tour { position:absolute; z-index:4; left:6px; right:6px; bottom:6px; max-height:58%; overflow:auto; background:rgba(255,255,255,.97); border-radius:14px; box-shadow:0 2px 12px rgba(0,0,0,.35); padding:10px; display:flex; flex-direction:column; gap:6px; }
+  @media (min-width:800px){ .tour { left:auto; right:8px; top:8px; bottom:8px; width:380px; max-height:none; } }
+  @media (max-width:799px){ .trnav { order:1; } .trtxt { order:2; } #trEditBox { order:2; } .trimg { order:3; } .trthumbs { order:4; } .trimg img { height:18vh; } .tour { padding:8px; gap:5px; max-height:62%; } .tour button { height:34px; font-size:12px; padding:0 9px; } .trtxt { font-size:14px; line-height:1.45; } .trhead b { font-size:14px; } .trthumbs img { width:48px; height:36px; } }
+  .trhead { display:flex; gap:6px; align-items:center; } .trhead b { flex:1; font-size:16px; min-width:0; }
+  .tour button { height:38px; padding:0 10px; border:none; border-radius:999px; background:#ea580c; color:#fff; font-family:inherit; font-size:13px; font-weight:900; }
+  .tour button.sub { background:#e2e8f0; color:#0f172a; }
+  .trtxt { font-size:15px; font-weight:700; line-height:1.55; color:#0f172a; }
+  .trimg img { width:100%; height:min(28vh, 260px); object-fit:contain; background:#0f172a; border-radius:10px; display:block; cursor:zoom-in; }
+  .trcap { font-size:12px; color:var(--sub); margin-top:2px; }
+  .trthumbs { display:flex; gap:4px; overflow-x:auto; padding:2px; } .trthumbs img { width:58px; height:44px; object-fit:cover; border-radius:6px; opacity:.55; flex:none; cursor:pointer; } .trthumbs img.on { opacity:1; outline:3px solid #ea580c; }
+  .trbar { display:flex; gap:6px; flex-wrap:wrap; } .trbar button { flex:1 1 auto; }
   .extab { width:100%; border-collapse:collapse; font-size:15px; }
   .extab th { text-align:left; width:6.5em; color:var(--sub); font-weight:800; padding:6px 4px; border-bottom:1px solid #e2e8f0; }
   .extab td { font-weight:900; padding:6px 4px; border-bottom:1px solid #e2e8f0; }
@@ -521,7 +534,7 @@
 </head>
 <body>
 <header>
-  <h1>🚚 トラック管理 <span class="ver" title="アプリの版">版 4.7</span></h1>
+  <h1>🚚 トラック管理 <span class="ver" title="アプリの版">版 4.8</span></h1>
   <button id="installBtn" hidden>📲 ホーム画面に追加</button>
   <div class="sub">TRUCK ・ 車両カルテと置き場の配置図</div>
   <div class="tab-bar">
@@ -572,14 +585,22 @@
 <!-- ===== 配置図 ===== -->
 <div class="wrap" id="siteView" hidden>
   <div class="statcard"><div style="font-size:18px;font-weight:900;">🏭 関根社内図</div><div class="status">本社（社内図④）と置き場①・②・③を、本当の位置でつないだ図です。見る専用です。直すときは置き場を押して、そのタブで直します。</div></div>
-  <div class="stage sitestage" id="siteStage"><svg id="siteSvg"></svg><div class="v3d" id="site3d" hidden><div class="v3dhint">1本指で回す・2本指で近づく　（見るだけ）</div><div class="v3dbtns"><button id="s3All">🗺 全体</button><button id="s3b8">🏗 ⑧倉庫-2</button><button id="s3Img">📷 画像で保存</button></div>
+  <div class="stage sitestage" id="siteStage"><svg id="siteSvg"></svg><div class="v3d" id="site3d" hidden><div class="v3dhint">1本指で回す・2本指で近づく　（見るだけ）</div><div class="v3dbtns"><button id="s3All">🗺 全体</button><button id="s3b8">🏗 ⑧倉庫-2</button><button id="s3Img">📷 画像で保存</button><button id="s3Tour" style="background:#ea580c;color:#fff;">🚶 見学ツアー</button></div>
+      <div class="tour" id="tour" hidden>
+        <div class="trhead"><b id="trTitle"></b><button class="sub" id="trEdit">✏️</button><button class="sub" id="trMode">🏢 紹介向け</button><button class="sub" id="trClose">✕</button></div>
+        <div class="trtxt" id="trTxt"></div>
+        <div id="trEditBox" hidden><textarea id="trIn" rows="3" style="width:100%;font-size:15px;font-family:inherit;border-radius:8px;border:1px solid #cbd5e1;padding:6px;"></textarea><div class="trbar"><button id="trSave">✓ 保存</button><button class="sub" id="trCancel">やめる</button></div></div>
+        <div class="trimg"><img id="trImg" alt=""><div class="trcap" id="trCap"></div></div>
+        <div class="trthumbs" id="trThumbs"></div>
+        <div class="trbar trnav"><button id="trPrev">◀ 前の場所</button><button id="trPlay">▶ 自動で進む</button><button id="trNext">次の場所 ▶</button></div>
+      </div>
       <div class="s3ph" id="s3ph" hidden><b id="s3phName"></b><button id="s3phPrev">◀ 前</button><button id="s3phNext">次 ▶</button><button id="s3phBig">🔍 大きく</button><button id="s3phOut">✕ 上から</button></div></div>
     <button class="zoombtn" id="sZoom" style="position:absolute;right:8px;top:8px;z-index:3;height:38px;padding:0 14px;border:none;border-radius:999px;background:#fff;font-family:inherit;font-weight:900;box-shadow:0 1px 4px rgba(0,0,0,.3);">🔍 本社を大きく</button>
     <div class="maptgl"><button id="sExt">🧯</button><button id="sPhotos">📷 写真</button><button id="sZone">ゾーン</button><button id="s2d" class="on">図</button><button id="s3d">3D</button></div></div>
   <div class="mbox" style="margin-top:10px;" id="sPhBox"><div style="font-weight:900;">📷 写真（本社の中）</div>
     <div class="status">地図の📷を押すと写真が出ます。ずれている写真は「✏️ 写真の場所を直す」を押してから、写真を押して動かします。</div>
     <div class="two"><button class="bigbtn" id="sPhEdit" style="background:#0f766e;color:#fff;">✏️ 写真の場所を直す</button><button class="bigbtn out" id="sPhList">🖼 写真を順に見る</button></div>
-    <div class="two" style="margin-top:8px;"><button class="bigbtn" id="sPh3d" style="background:#7c3aed;color:#fff;">🧊 写真を3Dで見る</button><button class="bigbtn" id="sExtMap" style="background:#dc2626;color:#fff;">🧯 消火器の置き場図</button></div>
+    <div class="two" style="margin-top:8px;"><button class="bigbtn" id="sPh3d" style="background:#ea580c;color:#fff;">🚶 会社見学ツアー（3D）</button><button class="bigbtn" id="sExtMap" style="background:#dc2626;color:#fff;">🧯 消火器の置き場図</button></div>
     <button class="bigbtn" id="sPhOnly" style="margin-top:8px;width:100%;background:#0369a1;color:#fff;">🏞 写真だけでヤードを見る</button>
     <div class="phgrid" id="sPhGrid" hidden></div></div>
   <div class="mbox" style="margin-top:10px;"><div style="font-weight:900;">置き場を開く（押すとそのタブへ）</div><div class="sitejump" id="siteJump"></div></div>
@@ -856,7 +877,7 @@
 
 <script>
 /* ===== アプリの版（直すたびに上げる。画面の上と印刷に出る） ===== */
-const APP_VER = "4.7", APP_VER_DATE = "2026年11月13日";
+const APP_VER = "4.8", APP_VER_DATE = "2026年11月13日";
 /* ===== Firebase ===== */
 firebase.initializeApp({
   apiKey: "AIzaSyD99Mx0MnGpLSQjV7830bS7-gdCBSM9DGY",
@@ -1422,7 +1443,7 @@ function saveZM(lot, patch, msg){   // ゾーン図の文字・置き場。配�
     routes: cur.routes.map(r => ({ k: RTYPE[r.k] ? r.k : "truck", pts: (r.pts || []).map(q => ({ x:Math.round(q.x), y:Math.round(q.y) })) })),
     marks: cur.marks.map(m => ({ k: MTYPE[m.k] ? m.k : "etc", x:Math.round(m.x), y:Math.round(m.y), t:String(m.t || "") })), at: Date.now() };
   const old8 = ((layout.zmap || {})[lot] || {}).b8; if (old8) v.b8 = old8;
-  const oldPh = ((layout.zmap || {})[lot] || {}).photos; if (oldPh) v.photos = oldPh;
+  ["photos","ext","tour"].forEach(k => { const o = ((layout.zmap || {})[lot] || {})[k]; if (o) v[k] = o; });
   layout.zmap = layout.zmap || {}; layout.zmap[lot] = v; if (trial && sharedLayout){ sharedLayout.zmap = sharedLayout.zmap || {}; sharedLayout.zmap[lot] = v; }
   render(); if (msg) toast(msg);
   return LAYOUT.set({ zmap:{ [lot]: v }, updatedAt: FV.serverTimestamp() }, { merge:true }).catch(er => { console.error(er); toast("⚠️ 保存できませんでした"); });
@@ -2696,7 +2717,7 @@ function drawFieldZoom(lot, l, ls, dn, e){
 // 世界の座標＝社内図④の座標(北が上・1m＝12)。置き場①②は航空写真(北が上)から、②スクラップヤードの中心からの目安(m)で置く
 const SITE_BASE = { "1": { dx:92, dy:-49 }, "2": { dx:62, dy:-85 } };
 const SITE_ROAD = [[723,1039],[2397,-59],[2553,193],[879,1291]];   // 国道144号を北東へのばした所(目安)
-let s3PhIdx = 0, site3DPh = false; let siteLot = "1", site3D = false, S3 = null, sPhEdit = false, siteZoom = false, showExtSite = true, sPhOnly = false;
+let s3PhIdx = 0, site3DPh = false, site3DTour = false; let siteLot = "1", site3D = false, S3 = null, sPhEdit = false, siteZoom = false, showExtSite = true, sPhOnly = false;
 function sitePt(cx, cy){ const svg = $("siteSvg"), p = svg.createSVGPoint(); p.x = cx; p.y = cy; return p.matrixTransform(svg.getScreenCTM().inverse()); }
 const cen = P => P.reduce((a, p) => [a[0] + p[0]/P.length, a[1] + p[1]/P.length], [0, 0]);
 const longAng = P => { let bl = 0, a = 0; P.forEach((p, i) => { const q = P[(i+1) % P.length], l = Math.hypot(q[0]-p[0], q[1]-p[1]); if (l > bl){ bl = l; a = Math.atan2(q[1]-p[1], q[0]-p[0]); } }); return a; };
@@ -2795,7 +2816,7 @@ document.addEventListener("click", e => { const t = e.target && e.target.closest
   if (t.dataset.sm){ const [x, y] = t.dataset.sm.split(",").map(Number); a.dx = +a.dx + x; a.dy = +a.dy + y; saveSiteAdj(siteLot, a); return; }
   if (t.dataset.sr){ if (t.dataset.sr === "x") saveSiteAdj(siteLot, { dx:0, dy:0, r:0 }); else { a.r = +a.r + +t.dataset.sr; saveSiteAdj(siteLot, a); } return; }
   if (t.id === "sZone"){ showZones = !showZones; try { localStorage.setItem("truck_zones2", showZones ? "1" : "0"); } catch(er){} renderSite(); }
-  if (t.id === "s2d"){ closeSite3D(); renderSite(); }
+  if (t.id === "s2d"){ if (tourOn){ tourOn = false; tourPlay = false; clearTimeout(tourTimer); document.body.classList.remove("touring"); $("tour").hidden = true; } closeSite3D(); renderSite(); }
   if (t.id === "s3d") openSite3D();
   if (t.id === "s3All" && S3){ $("s3ph").hidden = true; S3.reset(); }
   if (t.id === "s3b8" && S3 && T3focus8){ const f = T3focus8; S3.camera.position.set(f.x + 22, f.h + 18, f.z + 20); S3.controls.target.set(f.x, f.h, f.z); S3.controls.update(); S3.draw(); }
@@ -2837,7 +2858,7 @@ function buildSite3D(){
       const cab = new THREE.Mesh(new THREE.BoxGeometry(sz.W, h*0.85, cabL), new THREE.MeshLambertMaterial({ color:0x1e3a8a })); cab.position.set(0, h*0.85/2, sz.L/2 - cabL/2); g.add(cab); scene.add(g);
       const lb = textSprite(vMainName(v)); lb.position.set(cc[0], h + 1.2, cc[1]); scene.add(lb); }); });
   // 写真を撮った場所に立てる（看板のように・撮った向きを向く）
-  const boards = [], groups = [];
+  const boards = [], groups = [], discs = [];
   if (showPhotos){ const TL = new THREE.TextureLoader();
     photos4().forEach((p, pi) => { const t = (p.a || 0) * Math.PI / 180, dx = Math.sin(t), dz = -Math.cos(t), q = P(p.x, p.y);
       const g = new THREE.Group(); g.position.set(q[0] + dx*1.5, 0, q[1] + dz*1.5); g.rotation.y = -t;
@@ -2846,7 +2867,8 @@ function buildSite3D(){
       const pole = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.9, 0.12), new THREE.MeshLambertMaterial({ color:0x475569 })); pole.position.y = 0.45;
       const num = textSprite(String(pi + 1), "rgba(3,105,161,.92)"); num.scale.multiplyScalar(0.9);
       TL.load(p.src, tx => { ph.material.map = tx; ph.material.needsUpdate = true; fit(tx.image.width / tx.image.height); draw(); }); fit(4/3);
-      g.add(ph); g.add(fr); g.add(pole); g.add(num); scene.add(g); ph.userData.idx = fr.userData.idx = pi; boards.push(ph, fr); groups.push(g); });
+      g.add(ph); g.add(fr); g.add(pole); g.add(num); scene.add(g); ph.userData.idx = fr.userData.idx = pi; boards.push(ph, fr); groups.push(g); g.visible = false;
+      const dk = new THREE.Mesh(new THREE.CylinderGeometry(0.9, 0.9, 0.2, 18), new THREE.MeshLambertMaterial({ color:0x0284c7 })); dk.position.set(q[0], 0.15, q[1]); dk.userData.idx = pi; dk.visible = !tourOn; scene.add(dk); discs.push(dk); boards.push(dk); });
   }
   const flyTo = (pos, tg, ms) => { const p0 = camera.position.clone(), t0 = controls.target.clone(), st = performance.now();
     const step = now => { const k = Math.min(1, (now - st) / ms), e = k < 0.5 ? 2*k*k : 1 - Math.pow(-2*k + 2, 2) / 2; camera.position.lerpVectors(p0, pos, e); controls.target.lerpVectors(t0, tg, e); controls.update(); draw(); if (k < 1) requestAnimationFrame(step); };
@@ -2854,20 +2876,30 @@ function buildSite3D(){
   const flyPhoto = idx => { const L = photos4(), n = L.length; if (!n) return; idx = (idx + n) % n; const p = L[idx], t = (p.a || 0) * Math.PI / 180, dx = Math.sin(t), dz = -Math.cos(t), q = P(p.x, p.y);
     s3PhIdx = idx; controls.minDistance = 1; closeUp(idx); flyTo(new THREE.Vector3(q[0] - dx*3.6, 2.0, q[1] - dz*3.6), new THREE.Vector3(q[0] + dx*1.5, 1.8, q[1] + dz*1.5), 800);
     $("s3ph").hidden = false; $("s3phName").textContent = `📷 ${idx + 1}／${n}　${p.n}`; };
-  const closeUp = idx => { const lb = []; scene.traverse(o => { if (o.isSprite && !groups.some(g => g === o.parent)) lb.push(o); }); lb.forEach(o => o.visible = idx < 0); groups.forEach((g, i) => g.visible = idx < 0 || i === idx); };   // 近くで見るときは、その写真だけ・名札を消す
+  const closeUp = idx => { const lb = []; scene.traverse(o => { if (o.isSprite && !groups.some(g => g === o.parent)) lb.push(o); }); lb.forEach(o => o.visible = idx < 0 || tourOn); groups.forEach((g, i) => g.visible = i === idx); discs.forEach(d => d.visible = idx < 0 && !tourOn); };   // 近くで見るときは、その写真だけ・名札を消す
   const focus4 = () => { closeUp(-1); const c = cen(L4.lot), q = P(c[0], c[1]); flyTo(new THREE.Vector3(q[0] + 10, 75, q[1] + 70), new THREE.Vector3(q[0], 0, q[1]), 700); };
   { let down = null; const cv = renderer.domElement;
     cv.addEventListener("pointerdown", e => { down = [e.clientX, e.clientY]; });
     cv.addEventListener("pointerup", e => { if (!down || Math.hypot(e.clientX - down[0], e.clientY - down[1]) > 6 || !boards.length) return; down = null;
       const r = cv.getBoundingClientRect(), v = new THREE.Vector2((e.clientX - r.left) / r.width * 2 - 1, -(e.clientY - r.top) / r.height * 2 + 1), rc = new THREE.Raycaster(); rc.setFromCamera(v, camera);
-      const hit = rc.intersectObjects(boards)[0]; if (hit) flyPhoto(hit.object.userData.idx); }); }
+      if (tourOn) return; const hit = rc.intersectObjects(boards.filter(o => o.visible && (o.parent === scene || o.parent.visible)))[0]; if (hit) flyPhoto(hit.object.userData.idx); }); }
+  // 見学ツアーの道（オレンジの帯と矢印・番号）
+  let tourMk = null;
+  if (tourOn){ const mat = new THREE.MeshLambertMaterial({ color:0xf97316, transparent:true, opacity:0.75 });
+    TOUR_PATH.forEach(path => { if (!path) return; for (let i = 0; i < path.length - 1; i++){ const a = P(path[i][0], path[i][1]), b = P(path[i+1][0], path[i+1][1]), len = Math.hypot(b[0]-a[0], b[1]-a[1]);
+        const m = new THREE.Mesh(new THREE.BoxGeometry(0.9, 0.12, len), mat); m.position.set((a[0]+b[0])/2, 0.12, (a[1]+b[1])/2); m.rotation.y = Math.atan2(b[0]-a[0], b[1]-a[1]); scene.add(m);
+        if (i === path.length - 2 || len > 18){ const c = new THREE.Mesh(new THREE.ConeGeometry(1.3, 2.6, 16), mat); c.rotation.x = Math.PI/2; const cg = new THREE.Group(); cg.add(c); cg.position.set(a[0] + (b[0]-a[0])*0.75, 0.6, a[1] + (b[1]-a[1])*0.75); cg.rotation.y = Math.atan2(b[0]-a[0], b[1]-a[1]); scene.add(cg); } } });
+    TOUR.forEach((st, k) => { const q = P(st.f[0], st.f[1]), pin = new THREE.Mesh(new THREE.CylinderGeometry(0.25, 0.25, 5, 8), new THREE.MeshLambertMaterial({ color:0xc2410c })); pin.position.set(q[0], 2.5, q[1]); scene.add(pin);
+      const sp = textSprite(String(k + 1), "rgba(234,88,12,.95)"); sp.position.set(q[0], 6, q[1]); sp.scale.multiplyScalar(1.4); scene.add(sp); });
+    tourMk = new THREE.Mesh(new THREE.SphereGeometry(1.4, 20, 14), new THREE.MeshLambertMaterial({ color:0xdc2626 })); tourMk.position.y = 1.4; scene.add(tourMk); }
   const controls = new THREE.OrbitControls(camera, renderer.domElement), span = Math.max(gw, gh);
   const reset = () => { camera.position.set(span * 0.3, span * 0.7, span * 0.75); controls.target.set(0, 0, 0); controls.update(); draw(); };
   if (cam){ camera.position.copy(cam); controls.target.copy(tgt); controls.update(); } else reset();
   controls.maxPolarAngle = Math.PI/2 - 0.08; controls.minDistance = 5; controls.maxDistance = span * 3; controls.touches = { ONE: THREE.TOUCH.ROTATE, TWO: THREE.TOUCH.DOLLY_PAN };
-  controls.addEventListener("change", draw); S3 = { scene, camera, renderer, controls, draw, reset: () => { closeUp(-1); reset(); }, flyPhoto, focus4 }; draw();
+  controls.addEventListener("change", draw); S3 = { scene, camera, renderer, controls, draw, reset: () => { closeUp(-1); reset(); }, flyPhoto, focus4, flyTo, P, tourMk, narrow: W < 800 }; draw();
   if (!boards.length) $("s3ph").hidden = true;
   if (site3DPh){ site3DPh = false; setTimeout(focus4, 50); }
+  if (site3DTour){ site3DTour = false; setTimeout(() => tourGo(0, false), 60); } else if (tourOn) setTimeout(() => tourCam(TOUR[tourI].f, 0), 30);
 }
 window.addEventListener("resize", () => { if (site3D) setTimeout(buildSite3D, 50); });
 
@@ -2950,6 +2982,75 @@ function saveExt(no, patch){
   if (curTab === "site") renderSite(); else render(); renderExtMap(); toast(`消火器No.${no}を動かしました`);
   LAYOUT.set({ zmap:{ "4": { ext:{ [no]: ov[no] } } }, updatedAt: FV.serverTimestamp() }, { merge:true }).catch(() => toast("⚠️ 保存できませんでした"));
 }
+/* ===== 会社見学ツアー：仕事の流れの順に、3Dの道をたどって写真で見る ===== */
+const TOUR = [
+  { t:"国道の出入口", f:[600,1080], ph:[14,13], out:"国道144号から入る、会社の正面の出入口です。", in:"出入りのときは左右確認。歩く人や一般の車に気をつける所です。" },
+  { t:"トラックスケールで計量", f:[750,975], ph:[8,7,9,3,12,30], out:"運びこまれた物の重さを、トラックごと量ります。", in:"入るときと出るときに計量。人と車が交わる所なので注意します。" },
+  { t:"①事務所で受付", f:[430,1110], ph:[38,15,37], out:"受付と事務所です。計量や伝票の記録をここで管理しています。", in:"受付・伝票・計量票の確認。来客用の駐車は事務所の前です。" },
+  { t:"②スクラップヤードで荷おろし・選別", f:[650,760], ph:[32,41,2,17,33,10,11,40,39], out:"いちばん大きな建物です。荷おろしをして、種類ごとに選別します。", in:"荷おろし → 種類ごとに選別。フォークリフトと重機の動きに注意します。" },
+  { t:"⑤倉庫-1の前で中間処理・保管", f:[490,525], ph:[43,44,45,46,47,48,49,50,51], out:"中間処理をして、ドラム缶やフレコンで種類ごとに保管します。", in:"保管品は表示どおりの場所へ。火気厳禁の掲示と消火器格納庫があります。" },
+  { t:"スロープを下りて地下で保管", f:[520,365], ph:[63,62,52,64,59,60,61,53,54,35,36], out:"スロープを下りた地下の倉庫です。外からは見えない保管場所です。", in:"スロープは下り坂。フォークリフトの出入りに注意。ドラム缶・フレコンを保管しています。" },
+  { t:"⑧倉庫-2（1階と屋上ヤード）", f:[320,420], ph:[58,65], out:"新しい倉庫です。1階は倉庫、屋上はヤードになっています。", in:"1階はシャッターの倉庫。屋上はコンクリート壁と防球フェンスで囲んでいます。" },
+  { t:"北の出入口から出荷", f:[395,245], ph:[55,56,57], out:"北側の出入口です。ここから運び出します。", in:"出口の先は道路（セキチュー側）。左右確認。消火器格納庫があります。" },
+  { t:"東の広場・⑥シャッター付き倉庫", f:[850,760], ph:[4,6,1,16,5,18,19,20,21,22], out:"東の広場とシャッター付き倉庫です。車の駐車と保管に使っています。", in:"駐車と保管の場所。塀ぎわの通路をふさがないようにします。" },
+  { t:"③倉庫", f:[420,800], ph:[27,28,29,23,24,25,26,66,31,42,34], out:"屋根つきの倉庫です。道具や台ばかりもここに置いています。", in:"道具・台ばかりは③倉庫の手前。使ったら元の場所へもどします。" }];
+const TOUR_PATH = [null,
+  [[600,1080],[690,1020],[750,975]],
+  [[750,975],[600,1055],[480,1085],[430,1110]],
+  [[430,1110],[560,1050],[690,1000],[695,880],[680,800],[650,760]],
+  [[650,760],[685,700],[685,545],[600,525],[490,525]],
+  [[490,525],[665,525],[675,470],[675,310],[600,330],[520,365]],
+  [[520,365],[400,385],[340,395],[320,420]],
+  [[320,420],[365,330],[395,245]],
+  [[395,245],[520,300],[675,300],[680,560],[780,680],[850,760]],
+  [[850,760],[780,900],[640,1030],[480,1010],[440,900],[420,800]]];
+let tourOn = false, tourI = 0, tourPh = 0, tourPlay = false, tourMode = "out", tourTimer = null, tourAnim = 0;
+const tourTxt = i => { const o = ((((layout.zmap || {})["4"] || {}).tour) || {})[i] || {}; return o[tourMode] || TOUR[i][tourMode]; };
+const tourPhotos = i => { const L = photos4(); return TOUR[i].ph.map(n => L.find(p => p.id === "f" + String(n).padStart(2, "0"))).filter(Boolean); };
+function tourCam(f, ms){ if (!S3) return; const q = S3.P(f[0], f[1]), sh = S3.narrow ? [0, 24] : [14, 4], T = new THREE.Vector3(q[0] + sh[0], 0, q[1] + sh[1]);
+  const C = T.clone().add(new THREE.Vector3(0, 44, 46)); if (S3.tourMk) S3.tourMk.position.set(q[0], 1.4, q[1]);
+  if (!ms){ S3.camera.position.copy(C); S3.controls.target.copy(T); S3.controls.update(); S3.draw(); } else S3.flyTo(C, T, ms); }
+function tourStart(){ tourOn = true; tourI = 0; tourPh = 0; sPhOnly = false; sPhEdit = false; document.body.classList.add("touring"); $("tour").hidden = false;
+  { const hd = document.querySelector("header"), y = $("siteStage").getBoundingClientRect().top + window.scrollY - (hd ? hd.offsetHeight : 0) - 6; window.scrollTo({ top:Math.max(0, y), behavior:"smooth" }); }
+  if (site3D && S3){ setTimeout(() => { buildSite3D(); tourGo(0, false); }, 60); } else { site3DTour = true; renderSite(); openSite3D(); }
+  tourPanel(); }
+function tourEnd(){ tourOn = false; tourPlay = false; clearTimeout(tourTimer); cancelAnimationFrame(tourAnim); document.body.classList.remove("touring"); $("tour").hidden = true; setTimeout(() => { buildSite3D(); S3 && S3.focus4(); }, 60); }
+function tourGo(i, walk){ if (!S3) return; clearTimeout(tourTimer); cancelAnimationFrame(tourAnim); const from = tourI; tourI = Math.max(0, Math.min(TOUR.length - 1, i)); tourPh = 0; tourPanel();
+  const path = walk && tourI === from + 1 ? TOUR_PATH[tourI] : null;
+  if (!path){ tourCam(TOUR[tourI].f, 900); tourTimer = setTimeout(tourTick, 900); return; }
+  const pts = path.map(p => S3.P(p[0], p[1])), seg = [], tot = [0]; for (let k = 0; k < pts.length - 1; k++){ const l = Math.hypot(pts[k+1][0]-pts[k][0], pts[k+1][1]-pts[k][1]); seg.push(l); tot.push(tot[k] + l); }
+  const L = tot[tot.length - 1], dur = Math.max(1500, Math.min(4500, L / 20 * 1000)), st = performance.now();
+  const at = d => { let k = 0; while (k < seg.length - 1 && tot[k+1] < d) k++; const r = seg[k] ? (d - tot[k]) / seg[k] : 0; return [pts[k][0] + (pts[k+1][0]-pts[k][0])*r, pts[k][1] + (pts[k+1][1]-pts[k][1])*r]; };
+  const sh = S3.narrow ? [0, 24] : [14, 4];
+  const step = now => { const k = Math.min(1, (now - st) / dur), e = k < 0.5 ? 2*k*k : 1 - Math.pow(-2*k + 2, 2) / 2, q = at(e * L);
+    if (S3.tourMk) S3.tourMk.position.set(q[0], 1.4, q[1]); const T = new THREE.Vector3(q[0] + sh[0], 0, q[1] + sh[1]);
+    S3.camera.position.lerp(T.clone().add(new THREE.Vector3(0, 44, 46)), 0.12); S3.controls.target.lerp(T, 0.15); S3.controls.update(); S3.draw();
+    if (k < 1) tourAnim = requestAnimationFrame(step); else { tourCam(TOUR[tourI].f, 500); tourTimer = setTimeout(tourTick, 600); } };
+  tourAnim = requestAnimationFrame(step); }
+function tourTick(){ if (!tourPlay) return; tourTimer = setTimeout(() => { if (!tourPlay) return; const n = tourPhotos(tourI).length;
+  if (tourPh < n - 1){ tourPh++; tourPanel(); tourTick(); } else if (tourI < TOUR.length - 1) tourGo(tourI + 1, true); else { tourPlay = false; tourPanel(); toast("見学ツアーはここまでです"); } }, 2600); }
+function tourPanel(){ const st = TOUR[tourI], L = tourPhotos(tourI), p = L[tourPh];
+  $("trTitle").textContent = `${tourI + 1}／${TOUR.length}　${st.t}`; $("trTxt").textContent = tourTxt(tourI);
+  $("trMode").textContent = tourMode === "out" ? "🏢 紹介向け" : "👥 社内向け"; $("trPlay").textContent = tourPlay ? "⏸ 止める" : "▶ 自動で進む";
+  $("trImg").src = p ? p.src : ""; $("trCap").textContent = p ? `📷 ${photos4().findIndex(x => x.id === p.id) + 1}番　${p.n}（${tourPh + 1}／${L.length}枚）` : "";
+  $("trThumbs").innerHTML = L.map((x, k) => `<img src="${x.src}" data-tp="${k}" class="${k === tourPh ? "on" : ""}" alt="">`).join("");
+  $("trThumbs").querySelectorAll("[data-tp]").forEach(im => im.onclick = () => { tourPh = +im.dataset.tp; tourPanel(); });
+  const on = $("trThumbs").querySelector(".on"), tb = $("trThumbs"); if (on) tb.scrollLeft = Math.max(0, on.offsetLeft - tb.clientWidth / 2 + on.clientWidth / 2);
+  $("trPrev").disabled = tourI === 0; $("trNext").disabled = tourI === TOUR.length - 1; }
+function saveTourTxt(i, txt){ const ov = Object.assign({}, (((layout.zmap || {})["4"] || {}).tour) || {}); ov[i] = Object.assign({}, ov[i] || {}, { [tourMode]: txt });
+  layout.zmap = layout.zmap || {}; layout.zmap["4"] = Object.assign({}, layout.zmap["4"] || {}, { tour:ov }); if (trial && sharedLayout){ sharedLayout.zmap = sharedLayout.zmap || {}; sharedLayout.zmap["4"] = Object.assign({}, sharedLayout.zmap["4"] || {}, { tour:ov }); }
+  tourPanel(); toast("文を直しました");
+  LAYOUT.set({ zmap:{ "4": { tour:{ [i]: ov[i] } } }, updatedAt: FV.serverTimestamp() }, { merge:true }).catch(() => toast("⚠️ 保存できませんでした")); }
+document.addEventListener("click", e => { const id = e.target && e.target.id; if (!id || !/^tr/.test(id)) return;
+  if (id === "trClose") tourEnd();
+  if (id === "trNext"){ tourPlay = false; tourGo(tourI + 1, true); }
+  if (id === "trPrev"){ tourPlay = false; tourGo(tourI - 1, false); }
+  if (id === "trPlay"){ tourPlay = !tourPlay; tourPanel(); if (tourPlay) tourTick(); else clearTimeout(tourTimer); }
+  if (id === "trMode"){ tourMode = tourMode === "out" ? "in" : "out"; tourPanel(); }
+  if (id === "trImg"){ const p = tourPhotos(tourI)[tourPh]; if (p){ phIdx = photos4().findIndex(x => x.id === p.id); showPhotoBox(); } }
+  if (id === "trEdit"){ $("trEditBox").hidden = false; $("trIn").value = tourTxt(tourI); $("trIn").focus(); }
+  if (id === "trCancel") $("trEditBox").hidden = true;
+  if (id === "trSave"){ const v = $("trIn").value.trim(); $("trEditBox").hidden = true; if (v) saveTourTxt(tourI, v); } });
 /* ===== 消火器の置き場図（建物の形＋消火器マークと番号＋一覧） ===== */
 const extAge = e => { const y = +e.year; return y ? new Date().getFullYear() - y : null; };
 function drawExtMap(svg, print){
@@ -2984,9 +3085,7 @@ function printExtMap(){
   w.document.close();
 }
 document.addEventListener("click", e => { const id = e.target && e.target.id;
-  if (id === "sPh3d"){ sPhOnly = false; sPhEdit = false; if (!showPhotos){ showPhotos = true; try { localStorage.setItem("truck_photos", "1"); } catch(er){} }
-    $("siteStage").scrollIntoView({ behavior:"smooth", block:"start" }); if (site3D && S3){ renderSite(); S3 && S3.focus4(); } else { site3DPh = true; renderSite(); openSite3D(); }
-    toast("写真の看板を押すと、その場所へ行きます"); }
+  if (id === "sPh3d" || id === "s3Tour") tourStart();
   if (S3 && id === "s3phPrev") S3.flyPhoto(s3PhIdx - 1);
   if (S3 && id === "s3phNext") S3.flyPhoto(s3PhIdx + 1);
   if (id === "s3phBig"){ phIdx = s3PhIdx; showPhotoBox(); }
