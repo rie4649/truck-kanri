@@ -656,7 +656,7 @@
 </head>
 <body>
 <header>
-  <h1>🚚 トラック管理 <span class="ver" title="アプリの版">版 6.5</span></h1>
+  <h1>🚚 トラック管理 <span class="ver" title="アプリの版">版 6.6</span></h1>
   <button id="installBtn" hidden>📲 ホーム画面に追加</button>
   <div class="sub">TRUCK ・ 車両カルテと置き場の配置図</div>
   <div class="tab-bar">
@@ -712,7 +712,7 @@
       <button class="sgall" id="sgAll">▶ ぜんぶ見る</button>
       <button class="sgall les" id="sgLes">🔰 新人さん研修</button>
       <div class="sgchs"><button data-sgch="hello">👋 こんにちは</button><button data-sgch="strength">💪 強み</button><button data-sgch="kikai">🏗 機械作業</button><button data-sgch="metal">🔩 金属・レアメタル</button><button data-sgch="flow">♻️ 資源のゆくえ</button><button data-sgch="tour">🚶 社内案内（3D）</button><button data-sgch="equip">🚛 車両と設備</button><button data-sgch="permit">📜 許可・資格・表彰</button><button data-sgch="kanri">📋 管理</button><button data-sgch="env">🌱 環境・安全・災害</button><button data-sgch="town">🤝 地域といっしょに</button><button data-sgch="end">📞 おわりに</button></div>
-      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;"><label class="sgsnd"><input type="checkbox" id="sgSnd" checked> 🔊 声を出す</label><button class="sgtry" id="sgTry">🎤 声をためす</button></div></div>
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;"><label class="sgsnd"><input type="checkbox" id="sgSnd" checked> 🔊 声を出す</label><button class="sgtry" id="sgTry">🎤 声をためす</button><label class="sgsnd" title="ロボットのスタックから社内案内を進めます"><input type="checkbox" id="sgStackMode"> 🤖 スタックに話してもらう</label></div></div>
   </div>
   <div class="statcard" style="padding:10px 14px;"><b>🏭 本社と置き場①②③の図</b><span class="status" style="margin-left:6px;">本当の位置でつないだ図です（見る専用）</span></div>
   <div class="stage sitestage" id="siteStage"><svg id="siteSvg"></svg><div class="v3d" id="site3d" hidden><div class="v3dhint">1本指で回す・2本指で近づく　（見るだけ）</div><div class="v3dbtns"><button id="s3All">🗺 全体</button><button id="s3b8">🏗 ⑧倉庫-2</button><button id="s3Img">📷 画像で保存</button><button id="s3Tour" style="background:#ea580c;color:#fff;">🚶 社内案内</button></div>
@@ -1023,7 +1023,7 @@
 
 <script>
 /* ===== アプリの版（直すたびに上げる。画面の上と印刷に出る） ===== */
-const APP_VER = "6.5", APP_VER_DATE = "2026年11月14日";
+const APP_VER = "6.6", APP_VER_DATE = "2026年11月15日";
 /* ===== Firebase ===== */
 firebase.initializeApp({
   apiKey: "AIzaSyD99Mx0MnGpLSQjV7830bS7-gdCBSM9DGY",
@@ -3711,16 +3711,19 @@ function sgStop(){ sgTok++; $("sgMeImg").classList.remove("talk"); sgMouthStop()
 let isoPhP = null;
 function isoPh(){ if (isoPhP) return isoPhP; try { isoPhP = Promise.race([db.collection("isoPhotos").get().then(q => q.docs.map(d => Object.assign({ id:d.id }, d.data()))).catch(() => []), new Promise(r => setTimeout(() => r([]), 8000))]); } catch(e){ isoPhP = Promise.resolve([]); } return isoPhP; }
 async function sgStart(list, chain){ sgStop(); SG.list = list; SG.ci = 0; SG.chain = chain; SG.play = true; if (!SG.isoAt || Date.now() - SG.isoAt > 300000) SG.iso = null; sgChapter(0); }
-async function sgChapter(i){ sgStop(); if (i >= SG.list.length){ if (SG.mode === "les"){ lesMark(SG.les); lesMenu(); toast("✅ できた！"); return; } sgClose(); toast("社内案内はここまでだよ！"); return; } SG.ci = i; const ch = SG.list[i];
+async function sgChapter(i){ sgStop(); if (i >= SG.list.length && stkOn()){ sgClose(); stkReport({ active:false, say:"社内案内はここまでです。ご覧いただき、ありがとうございました！" }); return; } if (i >= SG.list.length){ if (SG.mode === "les"){ lesMark(SG.les); lesMenu(); toast("✅ できた！"); return; } sgClose(); toast("社内案内はここまでだよ！"); return; } SG.ci = i; const ch = SG.list[i];
+  if (ch === "tour" && stkOn()){ sgChapter(i + 1); return; }   /* スタック連動中は3Dの歩く案内を飛ばす(声をこの画面で出すため) */
   if (ch === "tour"){ $("sgShow").hidden = true; tourOnDone = () => sgChapter(SG.ci + 1); tourStart(SG.ci > 0); return; }
   $("sgShow").hidden = false; $("sgTitle").textContent = SG_CH[ch] || ch; $("sgBody").innerHTML = `<div class="sgcard" style="text-align:center;">読みこみ中…</div>`; $("sgSay").textContent = "";
   SG.scenes = await sgScenes(ch); SG.si = -1; sgScene(0); }
 function sgScene(k){ sgStop(); if (k < 0) k = 0; if (k >= SG.scenes.length){ sgChapter(SG.ci + 1); return; } SG.si = k; const sc = SG.scenes[k];
   $("sgDots").innerHTML = SG.scenes.map((x, j) => `<i class="${j === k ? "on" : ""}"></i>`).join(""); $("sgPlay").textContent = SG.play ? "⏸" : "▶";
+  if (sc.evac && stkOn()){ sgScene(k + 1); return; }
   if (sc.evac){ $("sgShow").hidden = true; evacStart(() => { $("sgShow").hidden = false; sgScene(k + 1); }); return; }
   $("sgDet").hidden = true; $("sgEd").hidden = true; $("sgBody").innerHTML = sc.html + (sc.btns ? `<div class="sgbtns" style="width:min(100%,900px);">${sc.btns.map(b => `<button data-sgd="${b[0]}">${b[1]}</button>`).join("")}</div>` : ""); $("sgSay").textContent = sgWhoTxt(sgSayOf(sc)); sgWhoSet();
   if (sc.btns){ const c = $("sgBody").querySelector(".sgcard"), bb = $("sgBody").querySelector(".sgbtns"); if (c && bb) c.appendChild(bb); }
   const bd = $("sgBody"); bd.scrollTop = 0; clearTimeout(SG.st); SG.st = setTimeout(() => { if (bd.scrollHeight > bd.clientHeight + 20) bd.scrollTo({ top:bd.scrollHeight, behavior:"smooth" }); }, 1800);   /* 長い時は下までゆっくり見せる */
+  if (stkOn()){ const ch = SG.list[SG.ci]; stkReport({ active:true, chapter:ch, chapterName:String(SG_CH[ch] || ch).replace(/^\S+\s/, ""), scene:k + 1, total:SG.scenes.length, say:sgWhoTxt(sgSayOf(sc)) }); return; }   /* スタック連動中：声も自動送りもせず、セリフをスタックに渡す */
   sgSpeak(sgWhoTxt(sgSayOf(sc)), () => { if (SG.play) SG.timer = setTimeout(() => sgScene(SG.si + 1), bd.scrollHeight > bd.clientHeight + 20 ? 1600 : 700); }); }
 function sgClose(){ sgStop(); SG.chain = false; $("sgShow").hidden = true; }
 document.addEventListener("click", e => { const t = e.target; if (!t) return; const id = t.id;
@@ -3735,6 +3738,38 @@ document.addEventListener("click", e => { const t = e.target; if (!t) return; co
   if (id === "sgSndB"){ $("sgSnd").checked = !$("sgSnd").checked; $("sgSndB").textContent = sgSnd() ? "🔊" : "🔇"; try { localStorage.setItem("sg_snd", sgSnd() ? "1" : "0"); } catch(er){} if (!sgSnd()) try { speechSynthesis.cancel(); } catch(er){} }
   if (id === "sgSnd"){ $("sgSndB").textContent = sgSnd() ? "🔊" : "🔇"; try { localStorage.setItem("sg_snd", sgSnd() ? "1" : "0"); } catch(er){} } });
 try { if (localStorage.getItem("sg_snd") === "0"){ $("sgSnd").checked = false; $("sgSndB").textContent = "🔇"; } } catch(e){}
+/* ===== スタック連動（版6.6 2026/11/15）=====
+   ロボット「スタック」が社内案内を進めて、セリフを話す。
+   Firestore: stackLink/truck_cmd … スタックからの合図 { cmd:start|chapter|next|prev|again|stop, ch, ms }
+              stackLink/truck_state … 今のページ { active, chapter, chapterName, scene, total, say, cmdMs, ms }
+   「🤖 スタックに話してもらう」をオンにした端末だけが合図を受ける。オンの間、この画面は声を出さず自動でも進まない。
+   セリフを✏️で直すと、スタックが話すセリフも同じように変わる。 */
+const STK = { on:false, unsub:null, ready:false, lastMs:0, cmdMs:0 };
+function stkOn(){ return STK.on; }
+const STK_LIST = () => SG_ALL.filter(k => k !== "tour");
+function stkReport(o){ try { db.collection("stackLink").doc("truck_state").set(Object.assign({ cmdMs:STK.cmdMs, ms:Date.now() }, o)).catch(e => console.error(e)); } catch(e){ console.error(e); } }
+function stkCmd(c){ STK.cmdMs = c.ms;
+  if (c.cmd === "start" || c.cmd === "chapter"){
+    if ($("siteView").hidden){ const b = document.querySelector('.tab-btn[data-tab="site"]'); if (b) b.click(); }
+    SG.play = false;
+    if (c.ch && /^L_/.test(c.ch) && SG_CH[c.ch]){ SG.mode = "les"; sgStart([c.ch], false); return; }
+    SG.mode = "show"; const list = STK_LIST(), i = c.ch ? list.indexOf(c.ch) : 0;
+    sgStart(list.slice(Math.max(0, i)), true); return; }
+  if (c.cmd === "stop"){ sgClose(); stkReport({ active:false, say:"社内案内を閉じました" }); return; }
+  if ($("sgShow").hidden){ stkReport({ active:false, say:"今は社内案内を開いていません。「社内案内を始めて」と言ってください" }); return; }
+  SG.play = false;
+  if (c.cmd === "next") sgScene(SG.si + 1);
+  else if (c.cmd === "prev") sgScene(SG.si - 1);
+  else sgScene(SG.si); }
+function stkSetMode(on){ STK.on = !!on; try { localStorage.setItem("sg_stack", STK.on ? "1" : "0"); } catch(e){} $("sgStackMode").checked = STK.on;
+  if (STK.on){ SG.play = false; try { speechSynthesis.cancel(); } catch(e){} }
+  if (STK.on && !STK.unsub){ STK.ready = false;
+    STK.unsub = db.collection("stackLink").doc("truck_cmd").onSnapshot(d => { const c = d.exists ? d.data() : null;
+      if (!STK.ready){ STK.ready = true; STK.lastMs = (c && c.ms) || 0; return; }   /* 開いた時に残っている合図は動かさない */
+      if (!c || !c.ms || c.ms <= STK.lastMs) return; STK.lastMs = c.ms; stkCmd(c); }, e => { console.error(e); toast("スタック連動：読み込めません（Firestoreのルールを確認）"); }); }
+  if (!STK.on && STK.unsub){ STK.unsub(); STK.unsub = null; } }
+$("sgStackMode").addEventListener("change", e => { stkSetMode(e.target.checked); toast(e.target.checked ? "🤖 スタック連動オン：スタックの合図で社内案内が進みます" : "スタック連動オフ"); });
+try { if (localStorage.getItem("sg_stack") === "1") stkSetMode(true); } catch(e){}
 /* ===== 避難：②で火事 → 避難経路図(2024)の矢印どおり国道へ出て東へ → 駐車場（置き場①）へ ===== */
 const EVAC_FIRE = [600,760];
 let EVAC_MEET = [1680,180], EVAC_PATH = [];
