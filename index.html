@@ -660,7 +660,7 @@
 </head>
 <body>
 <header>
-  <h1>🚚 トラック管理 <span class="ver" title="アプリの版">版 6.9</span></h1>
+  <h1>🚚 トラック管理 <span class="ver" title="アプリの版">版 7.0</span></h1>
   <button id="installBtn" hidden>📲 ホーム画面に追加</button>
   <div class="sub">TRUCK ・ 車両カルテと置き場の配置図</div>
   <div class="tab-bar">
@@ -1026,7 +1026,7 @@
 
 <script>
 /* ===== アプリの版（直すたびに上げる。画面の上と印刷に出る） ===== */
-const APP_VER = "6.9", APP_VER_DATE = "2026年11月16日";
+const APP_VER = "7.0", APP_VER_DATE = "2026年11月16日";
 /* ===== Firebase ===== */
 firebase.initializeApp({
   apiKey: "AIzaSyD99Mx0MnGpLSQjV7830bS7-gdCBSM9DGY",
@@ -5096,8 +5096,13 @@ $("iosClose").onclick = () => { $("iosModal").hidden = true; };
 showInstall();
 
 /* ===== はじめ ===== */
-if (location.hash === "#annai"){ try { goTab("site"); } catch(e){ goTab("home"); } } else { try { const t = localStorage.getItem("truck_tab"); if (t && document.querySelector(`.tab-btn[data-tab="${t}"]`)) goTab(t); else goTab("home"); } catch(e){ goTab("home"); } }
-window.addEventListener("hashchange", () => { if (location.hash === "#annai") try { goTab("site"); } catch(e){} });
+/* #annai で社内案内を開く。#annai-kikai のように章の名前がついていたら、その章から始める（ISO管理の「会社案内」から使う） */
+function annaiHash(){ const m = /^#annai(?:-([a-z]+))?$/.exec(location.hash); if (!m) return false;
+  try { goTab("site"); } catch(e){ goTab("home"); }
+  if (m[1] && SG_ALL.includes(m[1])) setTimeout(() => { SG.mode = "show"; sgStart(SG_ALL.slice(SG_ALL.indexOf(m[1])), true); }, 700);
+  return true; }
+if (annaiHash()){ } else { try { const t = localStorage.getItem("truck_tab"); if (t && document.querySelector(`.tab-btn[data-tab="${t}"]`)) goTab(t); else goTab("home"); } catch(e){ goTab("home"); } }
+window.addEventListener("hashchange", annaiHash);
 loadExtra();
 </script>
 </body>
