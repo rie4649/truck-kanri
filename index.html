@@ -673,7 +673,7 @@
 </head>
 <body>
 <header>
-  <h1>🚚 トラック管理 <span class="ver" title="アプリの版">版 7.1</span></h1>
+  <h1>🚚 トラック管理 <span class="ver" title="アプリの版">版 7.2</span></h1>
   <button id="installBtn" hidden>📲 ホーム画面に追加</button>
   <div class="sub">TRUCK ・ 車両カルテと置き場の配置図</div>
   <div class="tab-bar">
@@ -751,7 +751,7 @@
     <div class="two"><button class="bigbtn" id="sPhEdit" style="background:#0f766e;color:#fff;">✏️ 写真の場所を直す</button><button class="bigbtn out" id="sPhList">🖼 写真を順に見る</button></div>
     <div class="two" style="margin-top:8px;"><button class="bigbtn" id="sPh3d" style="background:#ea580c;color:#fff;">🚶 社内案内（3D）</button><button class="bigbtn" id="sExtMap" style="background:#dc2626;color:#fff;">🧯 消火器の置き場図</button></div>
     <button class="bigbtn" id="sPhOnly" style="margin-top:8px;width:100%;background:#0369a1;color:#fff;">🏞 写真だけでヤードを見る</button>
-    <label class="bigbtn" style="margin-top:8px;width:100%;background:#16a34a;color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;">📷 写真を足す<input type="file" id="sPhAdd" accept="image/*" multiple hidden></label>
+    <button class="bigbtn" id="anOpenBtn2" style="margin-top:8px;width:100%;background:#16a34a;color:#fff;">✏️ 社内案内を直す（写真を足す・文を直す）</button>
     <div class="phgrid" id="sPhGrid" hidden></div></div>
   <div class="mbox" style="margin-top:10px;"><div style="font-weight:900;">置き場を開く（押すとそのタブへ）</div><div class="sitejump" id="siteJump"></div></div>
   <details class="mbox" id="siteAdj"><summary style="font-weight:900;cursor:pointer;">📍 置き場の位置を合わせる</summary>
@@ -1039,7 +1039,7 @@
 
 <script>
 /* ===== アプリの版（直すたびに上げる。画面の上と印刷に出る） ===== */
-const APP_VER = "7.1", APP_VER_DATE = "2026年11月16日";
+const APP_VER = "7.2", APP_VER_DATE = "2026年11月16日";
 /* ===== Firebase ===== */
 firebase.initializeApp({
   apiKey: "AIzaSyD99Mx0MnGpLSQjV7830bS7-gdCBSM9DGY",
@@ -3623,6 +3623,7 @@ async function anRender(){ $("anTabs").innerHTML = anTabs(); const B = $("anBody
         <h4>この場所の写真（${L.length}枚）　<small>左が先に出ます</small></h4>
         <div class="anph">${L.map((p, k) => `<div><img src="${p.src}" alt=""><textarea data-anpd="${p.id}" rows="2" placeholder="写真の説明">${esc(p.d || "")}</textarea><div class="anpb"><button data-anpm="${k}:-1" ${k ? "" : "disabled"}>◀</button><button data-anpm="${k}:1" ${k < L.length - 1 ? "" : "disabled"}>▶</button><button data-anpx="${k}" class="sub">外す</button></div></div>`).join("")}</div>
         <div class="anbt"><button id="anPhDSave">✓ 写真の説明を保存</button><label class="anadd">📷 この場所に写真を足す<input type="file" id="anTourAdd" accept="image/*" multiple hidden></label></div>
+        <div class="note">場所を決めずに、地図に置くだけの写真は →<label class="anadd" style="margin-left:6px;background:#64748b;">📷 地図に写真を足す<input type="file" id="sPhAdd" accept="image/*" multiple hidden></label>（あとで「写真の場所を直す」で動かせます）</div>
       </div></div>`; return; }
   if (AN.tab === "say"){ B.innerHTML = `<div class="anform"><label>章・研修をえらぶ<select id="anCh">${anChapters().map(([k, t]) => `<option value="${k}" ${k === AN.ch ? "selected" : ""}>${esc(t)}</option>`).join("")}</select></label><div id="anSayList">読みこみ中…</div></div>`;
     const S = (await sgScenes(AN.ch)).filter(s => !s.evac && s.key); AN.rows = S;
@@ -3642,7 +3643,7 @@ function anTourSet(i, patch){ const ov = Object.assign({}, (((layout.zmap || {})
   layout.zmap = layout.zmap || {}; layout.zmap["4"] = Object.assign({}, layout.zmap["4"] || {}, { tour:ov }); if (trial && sharedLayout){ sharedLayout.zmap = sharedLayout.zmap || {}; sharedLayout.zmap["4"] = Object.assign({}, sharedLayout.zmap["4"] || {}, { tour:ov }); }
   return LAYOUT.set({ zmap:{ "4": { tour:{ [i]: ov[i] } } }, updatedAt: FV.serverTimestamp() }, { merge:true }).catch(() => toast("⚠️ 保存できませんでした")); }
 document.addEventListener("click", async e => { const t = e.target; if (!t || !t.closest) return;
-  if (t.id === "anOpenBtn" || t.closest("#anOpenBtn")) return anOpen();
+  if (t.id === "anOpenBtn" || t.closest("#anOpenBtn") || t.id === "anOpenBtn2") return anOpen("tour");
   if (t.id === "anClose") return anClose();
   const tb = t.closest("[data-antab]"); if (tb){ AN.tab = tb.dataset.antab; return anRender(); }
   const st = t.closest("[data-anstop]"); if (st){ AN.stop = +st.dataset.anstop; return anRender(); }
