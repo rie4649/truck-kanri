@@ -673,7 +673,7 @@
 </head>
 <body>
 <header>
-  <h1>🚚 トラック管理 <span class="ver" title="アプリの版">版 7.2</span></h1>
+  <h1>🚚 トラック管理 <span class="ver" title="アプリの版">版 7.3</span></h1>
   <button id="installBtn" hidden>📲 ホーム画面に追加</button>
   <div class="sub">TRUCK ・ 車両カルテと置き場の配置図</div>
   <div class="tab-bar">
@@ -1039,7 +1039,7 @@
 
 <script>
 /* ===== アプリの版（直すたびに上げる。画面の上と印刷に出る） ===== */
-const APP_VER = "7.2", APP_VER_DATE = "2026年11月16日";
+const APP_VER = "7.3", APP_VER_DATE = "2026年11月16日";
 /* ===== Firebase ===== */
 firebase.initializeApp({
   apiKey: "AIzaSyD99Mx0MnGpLSQjV7830bS7-gdCBSM9DGY",
@@ -3610,7 +3610,7 @@ function anChapters(){ return SG_ALL.filter(k => k !== "tour").map(k => [k, SG_C
 async function anUpload(file, extra){ const src = await shrinkImg(file, 640); const r = await db.collection("truck_photos").add(Object.assign({ n:"追加の写真 " + sgYmd(), d:"", src, x:560, y:760, a:0, at:Date.now() }, extra || {})); return "x_" + r.id; }
 function anOpen(tab){ try { sgStop(); SG.play = false; } catch(e){} try { tourPlay = false; clearTimeout(tourTimer); speechSynthesis.cancel(); } catch(e){} loadPhExtra();
   if (tab) AN.tab = tab; $("anEd").hidden = false; anRender(); }
-function anClose(){ $("anEd").hidden = true; if (curTab === "site") renderSite(); }
+async function anClose(){ await anFlush(); $("anEd").hidden = true; if (curTab === "site") renderSite(); }
 function anTabs(){ return [["tour","📍 3Dの場所"],["say","💬 セリフ"],["page","📄 ページを足す"],["word","📖 ことば"]].map(([k, t]) => `<button data-antab="${k}" class="${AN.tab === k ? "on" : ""}">${t}</button>`).join(""); }
 async function anRender(){ $("anTabs").innerHTML = anTabs(); const B = $("anBody");
   if (AN.tab === "tour"){ const i = AN.stop, o = tourOv(i), L = tourPhotos(i);
@@ -3635,15 +3635,16 @@ async function anRender(){ $("anTabs").innerHTML = anTabs(); const B = $("anBody
         <label>見出し<input data-anpg="${p.id}:title" value="${esc(p.title || "")}"></label><label>セリフ（スタック・ねねちゃんが話す）<textarea data-anpg="${p.id}:say" rows="2">${esc(p.say || "")}</textarea></label>
         <label>画面に出す文（なくてもOK）<textarea data-anpg="${p.id}:text" rows="3">${esc(p.text || "")}</textarea></label>
         ${ph ? `<img src="${ph.src}" alt="" class="anpimg">` : ""}<div class="anbt"><button data-anpgs="${p.id}">✓ 保存</button><label class="anadd">📷 写真${ph ? "を変える" : "をつける"}<input type="file" data-anpgph="${p.id}" accept="image/*" hidden></label><button class="sub" data-anpgo="${p.id}:-1" ${k ? "" : "disabled"}>▲</button><button class="sub" data-anpgo="${p.id}:1" ${k < P.length - 1 ? "" : "disabled"}>▼</button><button class="sub" data-anpgd="${p.id}">消す</button></div></div>`; }).join("")}
-      <div class="anpage new"><b>＋ 新しいページ</b><label>見出し<input id="anNT" placeholder="例：マニフェストのA票の書き方"></label><label>セリフ（スタック・ねねちゃんが話す）<textarea id="anNS" rows="2"></textarea></label><label>画面に出す文（なくてもOK）<textarea id="anNX" rows="3"></textarea></label><label class="anadd">📷 写真をつける（なくてもOK）<input type="file" id="anNP" accept="image/*" hidden></label><span id="anNPn" class="note"></span><div class="anbt"><button id="anNew">＋ このページを足す</button></div></div></div>`; return; }
+      <div class="anpage new"><b>＋ 新しいページ</b><label>見出し<input id="anNT" placeholder="例：マニフェストのA票の書き方" value="${esc((AN.draft || {}).anNT || "")}"></label><label>セリフ（スタック・ねねちゃんが話す）<textarea id="anNS" rows="2">${esc((AN.draft || {}).anNS || "")}</textarea></label><label>画面に出す文（なくてもOK）<textarea id="anNX" rows="3">${esc((AN.draft || {}).anNX || "")}</textarea></label><label class="anadd">📷 写真をつける（なくてもOK）<input type="file" id="anNP" accept="image/*" hidden></label><span id="anNPn" class="note"></span><div class="anbt"><button id="anNew">＋ このページを足す</button></div></div></div>`; return; }
   if (AN.tab === "word"){ const W = lesWords(true);
     B.innerHTML = `<div class="anform"><p class="note">研修の「関根商店のことば」に出ます。</p>${W.map(w => `<div class="anword"><input data-anw="${w.id}:w" value="${esc(w.w)}" placeholder="ことば"><textarea data-anw="${w.id}:m" rows="2" placeholder="意味">${esc(w.m)}</textarea><div class="anbt"><button data-anws="${w.id}">✓</button><button class="sub" data-anwd="${w.id}">消す</button></div></div>`).join("")}
-      <div class="anword new"><input id="anWW" placeholder="新しいことば（例：台貫）"><textarea id="anWM" rows="2" placeholder="意味"></textarea><div class="anbt"><button id="anWAdd">＋ 足す</button></div></div></div>`; return; } }
+      <div class="anword new"><input id="anWW" placeholder="新しいことば（例：台貫）" value="${esc((AN.draft || {}).anWW || "")}"><textarea id="anWM" rows="2" placeholder="意味">${esc((AN.draft || {}).anWM || "")}</textarea><div class="anbt"><button id="anWAdd">＋ 足す</button></div></div></div>`; return; } }
 function anTourSet(i, patch){ const ov = Object.assign({}, (((layout.zmap || {})["4"] || {}).tour) || {}); ov[i] = Object.assign({}, ov[i] || {}, patch);
   layout.zmap = layout.zmap || {}; layout.zmap["4"] = Object.assign({}, layout.zmap["4"] || {}, { tour:ov }); if (trial && sharedLayout){ sharedLayout.zmap = sharedLayout.zmap || {}; sharedLayout.zmap["4"] = Object.assign({}, sharedLayout.zmap["4"] || {}, { tour:ov }); }
   return LAYOUT.set({ zmap:{ "4": { tour:{ [i]: ov[i] } } }, updatedAt: FV.serverTimestamp() }, { merge:true }).catch(() => toast("⚠️ 保存できませんでした")); }
 document.addEventListener("click", async e => { const t = e.target; if (!t || !t.closest) return;
   if (t.id === "anOpenBtn" || t.closest("#anOpenBtn") || t.id === "anOpenBtn2") return anOpen("tour");
+  if (t.closest("#anEd") && (t.tagName === "BUTTON" || t.closest("button"))) await anFlush();
   if (t.id === "anClose") return anClose();
   const tb = t.closest("[data-antab]"); if (tb){ AN.tab = tb.dataset.antab; return anRender(); }
   const st = t.closest("[data-anstop]"); if (st){ AN.stop = +st.dataset.anstop; return anRender(); }
@@ -3652,6 +3653,7 @@ document.addEventListener("click", async e => { const t = e.target; if (!t || !t
   if (t.id === "anTourReset"){ await anTourSet(i, { t:"", out:"", in:"" }); toast("元の文にもどしました"); return anRender(); }
   if (t.id === "anTourSee"){ anClose(); tourStart(false); setTimeout(() => { try { tourGo(i, false); } catch(er){} }, 1500); return; }
   if (t.dataset.anpm){ const [k, d] = t.dataset.anpm.split(":").map(Number), ids = tourPhotos(i).map(p => p.id), j = k + d; [ids[k], ids[j]] = [ids[j], ids[k]]; await anTourSet(i, { ph:ids }); return anRender(); }
+  if (t.dataset.anpx !== undefined && t.dataset.ok !== "1"){ t.dataset.ok = "1"; t.textContent = "もう一度"; return; }
   if (t.dataset.anpx !== undefined){ const ids = tourPhotos(i).map(p => p.id); ids.splice(+t.dataset.anpx, 1); await anTourSet(i, { ph:ids }); toast("この場所から外しました（写真は残っています）"); return anRender(); }
   if (t.id === "anPhDSave"){ document.querySelectorAll("[data-anpd]").forEach(a => { const p = photos4().find(x => x.id === a.dataset.anpd); if (p && (p.d || "") !== a.value.trim()) savePhoto(p.id, { d:a.value.trim() }); }); toast("✅ 写真の説明を保存しました"); return; }
   if (t.dataset.ansays !== undefined || t.dataset.ansayr !== undefined){ const k = +(t.dataset.ansays ?? t.dataset.ansayr), s = AN.rows[k], v = t.dataset.ansays !== undefined ? document.querySelector(`[data-ansay="${k}"]`).value.trim() : "";
@@ -3662,10 +3664,10 @@ document.addEventListener("click", async e => { const t = e.target; if (!t || !t
     [P[k], P[j]] = [P[j], P[k]]; const patch = {}; P.forEach((p, n) => patch[p.id] = Object.assign({}, layout.annaiPages[p.id], { order:n })); await anSave({ annaiPages:patch }); return anRender(); }
   if (t.id === "anNew"){ const title = $("anNT").value.trim(), say = $("anNS").value.trim(), text = $("anNX").value.trim(), f = ($("anNP").files || [])[0]; if (!title && !say && !text && !f){ toast("見出しかセリフを入れてね"); return; }
     t.disabled = true; let ph = ""; try { if (f) ph = await anUpload(f, { kind:"page", n:title || "ページの写真" }); } catch(er){ toast("⚠️ 写真を保存できませんでした"); }
-    const id = "p" + Date.now(), order = anPages().filter(p => p.ch === AN.pch).length; await anSave({ annaiPages:{ [id]: { ch:AN.pch, title, say, text, ph, order, at:Date.now() } } }, "✅ ページを足しました"); return anRender(); }
+    AN.draft = {}; const id = "p" + Date.now(), order = anPages().filter(p => p.ch === AN.pch).length; await anSave({ annaiPages:{ [id]: { ch:AN.pch, title, say, text, ph, order, at:Date.now() } } }, "✅ ページを足しました"); return anRender(); }
   if (t.dataset.anws){ const id = t.dataset.anws, g = f => (document.querySelector(`[data-anw="${id}:${f}"]`) || {}).value || ""; await anSave({ annaiWords:{ [id]: { w:g("w").trim(), m:g("m").trim(), at:Date.now() } } }, "✅ 保存しました"); return; }
   if (t.dataset.anwd){ const id = t.dataset.anwd; if (t.dataset.ok !== "1"){ t.dataset.ok = "1"; t.textContent = "もう一度"; return; } await anSave({ annaiWords:{ [id]: { del:true, at:Date.now() } } }, "消しました"); return anRender(); }
-  if (t.id === "anWAdd"){ const w = $("anWW").value.trim(), m = $("anWM").value.trim(); if (!w){ toast("ことばを入れてね"); return; } await anSave({ annaiWords:{ ["w" + Date.now()]: { w, m, at:Date.now() } } }, "✅ ことばを足しました"); return anRender(); }
+  if (t.id === "anWAdd"){ const w = $("anWW").value.trim(), m = $("anWM").value.trim(); if (!w){ toast("ことばを入れてね"); return; } AN.draft = {}; await anSave({ annaiWords:{ ["w" + Date.now()]: { w, m, at:Date.now() } } }, "✅ ことばを足しました"); return anRender(); }
 });
 document.addEventListener("change", async e => { const t = e.target; if (!t) return;
   if (t.id === "anCh"){ AN.ch = t.value; return anRender(); }
@@ -3675,6 +3677,21 @@ document.addEventListener("change", async e => { const t = e.target; if (!t) ret
     for (const f of fs){ try { ids.push(await anUpload(f, { n:tourName(i), x:f0[0], y:f0[1] })); } catch(er){} }
     await anTourSet(i, { ph:ids }); toast("✅ 写真を足しました"); setTimeout(anRender, 1200); return; }
   if (t.dataset && t.dataset.anpgph){ const id = t.dataset.anpgph, f = (t.files || [])[0]; if (!f) return; try { const ph = await anUpload(f, { kind:"page", n:"ページの写真" }); await anSave({ annaiPages:{ [id]: Object.assign({}, layout.annaiPages[id], { ph }) } }, "✅ 写真をつけました"); setTimeout(anRender, 1200); } catch(er){ toast("⚠️ 写真を保存できませんでした"); } } });
+/* 版7.3：入力したものが消えないように。欄から出たとき・ほかのボタンを押す前・とじる前に自動で保存 */
+document.addEventListener("input", e => { const t = e.target; if (t && t.closest && t.closest("#anEd") && /^(INPUT|TEXTAREA)$/.test(t.tagName) && t.type !== "file") t.dataset.dirty = "1"; });
+document.addEventListener("change", e => { const t = e.target; if (t && t.dataset && t.dataset.dirty === "1" && t.closest && t.closest("#anEd")) anFlush(true); });
+let anFlushing = null;
+async function anFlush(say){ if (anFlushing) return anFlushing; const D = Array.from(document.querySelectorAll('#anEd [data-dirty="1"]')); if (!D.length) return; D.forEach(x => delete x.dataset.dirty);
+  anFlushing = (async () => { const jobs = []; const has = id => D.some(x => x.id === id);
+    if (AN.tab === "tour" && (has("anT") || has("anOut") || has("anIn"))){ const i = AN.stop; jobs.push(anTourSet(i, { t:$("anT").value.trim() || TOUR[i].t, out:$("anOut").value.trim(), in:$("anIn").value.trim() })); }
+    D.filter(x => x.dataset.anpd).forEach(a => { const p = photos4().find(x => x.id === a.dataset.anpd); if (p && (p.d || "") !== a.value.trim()) savePhoto(p.id, { d:a.value.trim() }); });
+    D.filter(x => x.dataset.ansay !== undefined).forEach(a => { const s = AN.rows[+a.dataset.ansay]; if (s){ const v = a.value.trim(); jobs.push(anSave({ sgSay:{ [s.key]: v === (s.say || "") ? "" : v } })); } });
+    const pg = {}; D.filter(x => x.dataset.anpg).forEach(a => { const [id, f] = a.dataset.anpg.split(":"); pg[id] = Object.assign(pg[id] || Object.assign({}, (layout.annaiPages || {})[id]), { [f]: a.value.trim() }); }); if (Object.keys(pg).length) jobs.push(anSave({ annaiPages:pg }));
+    const wd = {}; D.filter(x => x.dataset.anw).forEach(a => { const [id, f] = a.dataset.anw.split(":"); const cur = lesWords(true).find(w => w.id === id) || {}; wd[id] = Object.assign(wd[id] || { w:cur.w || "", m:cur.m || "" }, { [f]: a.value.trim(), at:Date.now() }); }); if (Object.keys(wd).length) jobs.push(anSave({ annaiWords:wd }));
+    D.filter(x => /^anN[TSX]$|^anW[WM]$/.test(x.id)).forEach(x => { AN.draft = AN.draft || {}; AN.draft[x.id] = x.value; });
+    await Promise.all(jobs); if (say !== false && jobs.length + D.filter(x => x.dataset.anpd).length) anSaved(); })();
+  try { await anFlushing; } finally { anFlushing = null; } }
+function anSaved(){ const h = document.querySelector("#anEd .anhead .note"); if (!h) return; h.textContent = "✓ 自動で保存しました（" + new Date().toLocaleTimeString("ja-JP", { hour:"2-digit", minute:"2-digit" }) + "）"; h.style.color = "#15803d"; }
 /* 足したページを、その章のおわりに入れる */
 function anPageScenes(ch){ return anPages().filter(p => p.ch === ch).sort((a, b) => (a.order || 0) - (b.order || 0)).map(p => { const ph = p.ph ? anPhoto(p.ph) : null;
   return { key:"pg:" + p.id, say:p.say || p.title || "", orig:p.say || "", html:sgCard(esc(p.title || ""), (ph ? `<img class="sglimg" src="${ph.src}" alt="" data-zoom="1">` : "") + (p.text ? `<div class="sgok" style="white-space:pre-wrap;text-align:left;">${esc(p.text)}</div>` : "")) }; }); }
@@ -5215,5 +5232,5 @@ if (annaiHash()){ } else { try { const t = localStorage.getItem("truck_tab"); if
 window.addEventListener("hashchange", annaiHash);
 loadExtra();
 </script>
-  <div class="aned" id="anEd" hidden><div class="anhead"><b>✏️ 社内案内を直す</b><span class="note">ここでは案内は進みません。直したら「保存」を押してね。みんなの画面に出ます。</span><button id="anClose">✕ とじる</button></div><div class="antabs" id="anTabs"></div><div class="anbody" id="anBody"></div></div>
+  <div class="aned" id="anEd" hidden><div class="anhead"><b>✏️ 社内案内を直す</b><span class="note">ここでは案内は進みません。書いたものは自動で保存されます（欄から出たとき・ほかのボタンを押したとき）。みんなの画面に出ます。</span><button id="anClose">✕ とじる</button></div><div class="antabs" id="anTabs"></div><div class="anbody" id="anBody"></div></div>
 </body>
