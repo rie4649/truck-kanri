@@ -1039,7 +1039,7 @@
 
 <script>
 /* ===== アプリの版（直すたびに上げる。画面の上と印刷に出る） ===== */
-const APP_VER = "7.5", APP_VER_DATE = "2026年11月18日";
+const APP_VER = "7.6", APP_VER_DATE = "2026年11月18日";
 /* ===== Firebase ===== */
 firebase.initializeApp({
   apiKey: "AIzaSyD99Mx0MnGpLSQjV7830bS7-gdCBSM9DGY",
@@ -3376,11 +3376,40 @@ function sgFacts(D){ const now = new Date().getFullYear(), F = {};
   return F; }
 const sgCard = (h2, inner) => `<div class="sgcard">${h2 ? `<h2>${h2}</h2>` : ""}${inner}</div>`;
 const sgN = (i, k, v, u, sub, d) => `<div class="sgnum" style="animation-delay:${d || 0}s"><div class="i">${i}</div><div class="k">${k}</div><div class="v">${v}<small>${u}</small></div>${sub ? `<div class="s">${sub}</div>` : ""}</div>`;
-async function sgScenes(ch){ const D = await isoLoad(), F = sgFacts(D), pf = D.pf, intro = $("trIntro").querySelector("img").src, S = [];
+/* ===== 版7.6：「会社のいま」の数字を、ISO管理と同じ数え方でここでも自動で数える（手で書き写さない） =====
+   許可 = isoKyokaDocs の「許可期限」を許可の種類ごとに1件／委託先 = isoRegisters の vendors（下書き除く）／契約 = master_contracts
+   圧縮機 = compressorMachines／フロン機器 = freonEquipments／有資格者 = 従業員名簿のうち資格が登録されている人／CO2 = 前年度の軽油 × 2.58
+   読み込めなかった数字は、0にせず、その項目を出さない。 */
+let sgLiveP = null;
+function sgLiveLoad(){ if (sgLiveP) return sgLiveP;
+  const to = (pr, v) => Promise.race([pr, new Promise(r => setTimeout(() => r(v), 7000))]);
+  const g = n => { try { return to(db.collection(n).get().then(q => q.docs.map(d => Object.assign({ id:d.id }, d.data()))).catch(() => null), null); } catch(e){ return Promise.resolve(null); } };
+  return sgLiveP = Promise.all([g("freonEquipments"), g("master_contracts"), g("isoRegisters"), g("isoKyokaDocs")]).then(([fe, ct, rg, kd]) => { if (!fe && !ct && !rg && !kd) sgLiveP = null; return { fe, ct, rg, kd }; }); }
+function sgLive(D, F, X){ const L = {}, ymd = sgYmd(), pf = D.pf || {}; X = X || {};
+  try { const nn = x => String(x || "").normalize("NFKC").replace(/[\s　]/g, ""), hasQ = e => Array.isArray(e.qualifications) ? e.qualifications.length : String(e.qualifications || "").trim();
+    const qBy = {}; (D.emps || []).filter(e => e.name && hasQ(e)).forEach(e => qBy[nn(e.name)] = e);
+    const rAct = (D.ros || []).filter(r => r.name && !(r.leaveDate && r.leaveDate < ymd) && (pf.employeesCountOfficers !== false || r.kind !== "役員")), base = rAct.length ? rAct : (D.emps || []).filter(e => e.name);
+    const hold = base.filter(r => qBy[nn(r.name)]); if (hold.length){ L.qual = hold.length; L.qualOf = base.length; } } catch(e){}
+  try { const wh = (D.h || []).filter(x => /倉庫/.test(x.text || "")).length; if (wh) L.wh = wh; } catch(e){}
+  try { if (D.cm && D.cm.length) L.cm = D.cm.length; if (X.fe && X.fe.length) L.fe = X.fe.length; } catch(e){}
+  try { if (X.kd){ const g = {}; X.kd.forEach(d => { const k = d.type || ""; if (!g[k] || String(d.date) > String(g[k].date)) g[k] = d; }); const lim = Object.values(g).filter(d => (d.dateKind || "許可期限") === "許可期限" && d.date); if (lim.length) L.permit = lim.length; } } catch(e){}
+  try { if (X.rg){ const n = X.rg.filter(r => r.reg === "vendors" && !r.draft).length; if (n) L.vendor = n; } } catch(e){}
+  try { if (X.ct && X.ct.length) L.contract = X.ct.length; } catch(e){}
+  try { const pv = (D.pm || []).filter(v => v.biz === "mid" || !v.biz).sort((a, b) => String(b.startDate || "").localeCompare(String(a.startDate || "")) || (b.createdMs || 0) - (a.createdMs || 0));
+    const pcur = pv.find(v => !v.startDate || v.startDate <= ymd) || pv[pv.length - 1], fcs = ((pcur && pcur.facilities) || []).filter(x => x.capacity);
+    if (fcs.length){ const mm = String(fcs[0].capacity).normalize("NFKC").match(/([\d.,]+)\s*(t|トン|kg|m3|㎥)\s*\/?\s*(日|時間|h)?/i), type = fcs.map(x => x.type).filter(Boolean).join("・");
+      if (mm){ const isT = /^(t|トン)$/i.test(mm[2]), v = sgNum(Number(mm[1].replace(/,/g, "")), 2);
+        L.mid = { v, unit:(isT ? "t" : mm[2]) + (mm[3] ? "/" + mm[3] : ""), type, say:(mm[3] === "日" ? "1日あたり" : mm[3] ? mm[3] + "あたり" : "") + v + (isT ? "トン" : mm[2]) }; } } } catch(e){}
+  try { if (D.dr && D.dr.length){ const pfy = sgFy(ymd).split("-").map(Number).map(v => v - 1).join("-"), lit = x => +x.totalLiters || (x.vehicles || []).reduce((a, v) => a + (+v.liters || 0), 0);
+    const Lt = D.dr.filter(x => x.yearMonth && sgFy(x.yearMonth) === pfy).reduce((a, x) => a + lit(x), 0);
+    if (Lt) L.co2 = { t:sgNum(Lt * 2.58 / 1000, 0), L:sgNum(Lt, 0), fy:pfy.split("-")[0] + "年度" }; } } catch(e){}
+  return L; }
+async function sgScenes(ch){ const [D, X] = await Promise.all([isoLoad(), ch === "hello" ? sgLiveLoad() : null]), F = sgFacts(D), pf = D.pf, intro = $("trIntro").querySelector("img").src, S = [];
   if (/^L_/.test(ch)) return sgKeys(ch, lesScenes(ch, D));
   { const X = sgScenesX(ch, D, F); if (X) return sgKeys(ch, X); }
   if (ch === "equip") D.ph = await isoPh();
   if (ch === "hello"){
+    const LV = sgLive(D, F, X);
     S.push({ say:"ここが株式会社関根商店です。これから、会社をご案内します。", html:`<div class="sghero2"><img src="${intro}" alt="関根商店の外観" style="object-position:50% 22%;"><div><small>ようこそ</small><b>株式会社 関根商店</b><span>社内案内</span></div></div>` });
     { const by = pf.employeesBreakdown || {}, bd = ["役員","作業員","事務員","パート"].filter(k => by[k]).map(k => k + " " + by[k] + "名").join("・");
       const bases = ["本社（上田市住吉）"].concat(D.h.filter(x => /倉庫取得|倉庫設置|新設倉庫/.test(x.text || "")).map(x => String(x.text).replace(/取得|設置/g, "").trim() + `（${x.date}）`));
@@ -3391,19 +3420,32 @@ async function sgScenes(ch){ const D = await isoLoad(), F = sgFacts(D), pf = D.p
     const nums = [sgN("🏢","創業から",F.years,"年"), sgN("👷","従業員",F.staff,"名",F.staffHp ? "ホームページより" : "",.08), sgN("🚛","トラック・車両",F.cars,"台",F.carsHp ? "ホームページより" : "",.16)];
     if (F.isoY) nums.push(sgN("🏅","ISO14001 取得から",new Date().getFullYear() - F.isoY,"年","",.24));
     if (F.aw) nums.push(sgN("🏆","表彰・認定",F.aw,"件",F.awT.join("・"),.32));
-    nums.push(sgN("🎓","有資格者",22,"名",`従業員${F.staff}名中`,.4), sgN("🏭","倉庫",3,"か所","本社のほか",.48), sgN("📜","許可",14,"件","期限のある許可",.56));   /* 版7.5：有資格者・倉庫・許可は「会社のいま」(2026.11.18時点)の数字。変わったらここを直す */
-    S.push({ say:`数字で見てみましょう。創業から${F.years}年です。従業員は${F.staff}名で、そのうち22名が資格を持っています。車両は${F.cars}台、倉庫は本社のほかに3か所あります。許可は14件、` + (F.isoY ? `ISO14001は取得から${new Date().getFullYear() - F.isoY}年になります。` : `ISO14001の認証も取得しています。`), html:sgCard("数字で見る関根商店", `<div class="sgnums">${nums.join("")}</div>`) });
+    if (LV.qual != null) nums.push(sgN("🎓","有資格者",LV.qual,"名",`従業員${LV.qualOf}名中`,.4)); if (LV.wh != null) nums.push(sgN("🏭","倉庫",LV.wh,"か所","本社のほか",.48)); if (LV.permit != null) nums.push(sgN("📜","許可",LV.permit,"件","期限のある許可",.56));   /* 版7.6：ISO管理の「会社のいま」と同じ数え方 */
+    S.push({ say:(() => { const p = [`数字で見てみましょう。創業から${F.years}年です。`, `従業員は${F.staff}名${LV.qual != null ? `で、そのうち${LV.qual}名が資格を持っています` : ""}。`, `車両は${F.cars}台${LV.wh != null ? `、倉庫は本社のほかに${LV.wh}か所あります` : ""}。`]; if (LV.permit != null) p.push(`許可は${LV.permit}件、`); p.push(F.isoY ? `ISO14001は取得から${new Date().getFullYear() - F.isoY}年になります。` : `ISO14001の認証も取得しています。`); return p.join(""); })(), html:sgCard("数字で見る関根商店", `<div class="sgnums">${nums.join("")}</div>`) });
     { const o = D.org || { upper:["株主総会","監査役・取締役会","代表取締役会長・代表取締役社長","専務・常務・業務","工場長"], depts:[{ name:"現場部門", items:["収集運搬","機械作業（機械移動含む）","中間処理（圧縮）"] }, { name:"事務部門", items:["総務","労務"] }, { name:"管理部門", items:["内部監査（環境管理・ＩＳＯ推進委員）","安全衛生管理","整備管理"] }] };
       const up = (o.upper || []).map(x => typeof x === "string" ? x : (x.name || "")).filter(Boolean), ds = o.depts || [];
       S.push({ say:`会社の組織です。${ds.map(d => d.name).join("、")}に分かれ、力を合わせて仕事をしています。` + (() => { const by = pf.employeesBreakdown || {}, t = ["役員","作業員","事務員","パート"].filter(k => by[k]).map(k => k + by[k] + "名").join("、"); return t ? `従業員${F.staff}名の内訳は、${t}です。` : ""; })(), html:sgCard("🏛 組織図", `<div class="sgorg">${up.map((u, i) => `${i ? `<div class="ar">▼</div>` : ""}<div class="u" style="animation-delay:${i*.12}s">${esc(u)}</div>`).join("")}<div class="ar">▼</div><div class="ds">${ds.map((d, i) => `<div class="d" style="animation-delay:${.6 + i*.15}s"><b>${esc(d.name)}</b>${(d.items || []).map(x => `<span>・${esc(typeof x === "string" ? x : x.name || "")}</span>`).join("")}</div>`).join("")}</div></div>`) }); }
     /* 版7.5：あゆみは1ページにまとめ、取引先・所属団体のページはやめて、許可・設備・環境・表彰のページを足した */
     if (D.h.length){ S.push({ key:"hl:history", say:"これまでのあゆみです。昭和49年に有限会社関根商店を設立し、天井クレーンやトラックスケールを設置しました。平成には、産業廃棄物の収集運搬業と処分業の許可、そしてISO14001の認証を取得しました。令和には、一般建設業の許可を取得し、長野県SDGs推進事業にも登録しました。ほかにも、たくさんの歩みがあります。", html:sgCard("📜 関根商店のあゆみ", `<div class="sgtl">${D.h.map((x, i) => `<div style="animation:sgIn .4s ${Math.min(i, 12)*.06}s ease-out both"><b>${esc(x.date || "")}</b><span>${esc(x.text || "")}</span></div>`).join("")}</div>`), btns:[["history","📜 沿革をぜんぶ見る"]] }); }
-    { const foot = `<div style="text-align:right;font-size:11px;color:#64748b;margin-top:8px;">2026年11月18日時点</div>`, yN = new Date().getFullYear();
-      S.push({ key:"hl:permit", say:"許可を、14件管理しています。処分や運搬をお願いしている委託先は10社、契約は788件あります。どれも台帳で管理しています。", html:sgCard("📋 許可と契約", `<div class="sgnums">${[sgN("📜","許可",14,"件","期限のある許可"), sgN("🤝","委託先",10,"社","処分・運搬の委託先",.08), sgN("📑","契約",788,"件","マスタ管理の契約",.16)].join("")}</div>${foot}`) });
-      S.push({ key:"hl:equip", say:`車両は${F.cars}台あります。倉庫は、本社のほかに3か所あります。主な設備は、圧縮機が1台と、フロン関係の機器が2台です。`, html:sgCard("🚛 車両・倉庫・設備", `<div class="sgnums">${[sgN("🚛","保有車両",F.cars,"台"), sgN("🏭","倉庫",3,"か所","本社のほか",.08), sgN("🗜","圧縮機",1,"台","",.16), sgN("🧊","フロン機器",2,"台","",.24)].join("")}</div>${foot}`) });
-      { const bri = F.bri != null ? sgNum(F.bri, 1) : "61.3", tgt = F.briT != null ? F.briT : 80, isoN = F.isoY ? yN - F.isoY : 22;
-        S.push({ key:"hl:eco", say:`ISO14001は、${F.isoY || 2004}年の取得から${isoN}年になります。中間処理は、圧縮梱包施設で、1日あたり3.52トンの処理ができます。金属の切り粉をブリケットにする割合は、3年平均で${bri}%、目標は${tgt}%です。前年度の二酸化炭素の排出量は、軽油の使用で391トンでした。`, html:sgCard("🌱 リサイクルと環境", `<div class="sgnums">${[sgN("🏅","ISO14001 取得から",isoN,"年"), sgN("🗜","中間処理の能力","3.52","t/日","圧縮梱包施設",.08), sgN("🧱","ブリケット化率",bri,"%",`3年平均・目標${tgt}%`,.16), sgN("🌍","CO₂（前年度）","391","t","軽油の使用・2025年度",.24)].join("")}</div>${foot}`) }); }
-      S.push({ key:"hl:award", say:`表彰、認定、宣言を、合わせて${F.aw || 6}件いただいています。パートナーシップ構築宣言のほか、優良事業所の表彰などがあります。`, html:sgCard("🏆 表彰・認定・宣言", `<div class="sgnums">${[sgN("🏆","表彰・認定・宣言",F.aw || 6,"件","パートナーシップ構築宣言 ほか")].join("")}</div>${foot}`) }); }
+    { const foot = `<div style="text-align:right;font-size:11px;color:#64748b;margin-top:8px;">${sgYmd().replace(/-/g, ".")} 時点・台帳から自動で数えています</div>`, yN = new Date().getFullYear(), dl = c => c.length * .08;
+      { const c = [], t = [];   /* 許可と契約 */
+        if (LV.permit != null){ c.push(sgN("📜","許可",LV.permit,"件","期限のある許可",dl(c))); t.push(`許可を、${LV.permit}件管理しています。`); }
+        if (LV.vendor != null){ c.push(sgN("🤝","委託先",LV.vendor,"社","処分・運搬の委託先",dl(c))); t.push(`処分や運搬をお願いしている委託先は、${LV.vendor}社です。`); }
+        if (LV.contract != null){ c.push(sgN("📑","契約",LV.contract,"件","マスタ管理の契約",dl(c))); t.push(`契約は、${LV.contract}件あります。`); }
+        if (c.length) S.push({ key:"hl:permit", say:t.join("") + "どれも台帳で管理しています。", html:sgCard("📋 許可と契約", `<div class="sgnums">${c.join("")}</div>${foot}`) }); }
+      { const c = [sgN("🚛","保有車両",F.cars,"台")], t = [`車両は${F.cars}台あります。`], eq = [];   /* 車両・倉庫・設備 */
+        if (LV.wh != null){ c.push(sgN("🏭","倉庫",LV.wh,"か所","本社のほか",dl(c))); t.push(`倉庫は、本社のほかに${LV.wh}か所あります。`); }
+        if (LV.cm){ c.push(sgN("🗜","圧縮機",LV.cm,"台","",dl(c))); eq.push(`圧縮機が${LV.cm}台`); }
+        if (LV.fe){ c.push(sgN("🧊","フロン機器",LV.fe,"台","",dl(c))); eq.push(`フロン関係の機器が${LV.fe}台`); }
+        if (eq.length) t.push(`主な設備は、${eq.join("と")}です。`);
+        S.push({ key:"hl:equip", say:t.join(""), html:sgCard("🚛 車両・倉庫・設備", `<div class="sgnums">${c.join("")}</div>${foot}`) }); }
+      { const c = [], t = [];   /* リサイクルと環境 */
+        if (F.isoY){ const n = yN - F.isoY; c.push(sgN("🏅","ISO14001 取得から",n,"年","",dl(c))); t.push(`ISO14001は、${F.isoY}年の取得から${n}年になります。`); }
+        if (LV.mid){ c.push(sgN("🗜","中間処理の能力",LV.mid.v,LV.mid.unit,LV.mid.type || "処分業の許可",dl(c))); t.push(`中間処理は、${LV.mid.type ? LV.mid.type + "で、" : ""}${LV.mid.say}の処理ができます。`); }
+        if (F.bri != null){ const bv = sgNum(F.bri, 1), tg = F.briT != null ? F.briT : null; c.push(sgN("🧱","ブリケット化率",bv,"%","3年平均" + (tg != null ? `・目標${tg}%` : ""),dl(c))); t.push(`金属の切り粉をブリケットにする割合は、3年平均で${bv}%` + (tg != null ? `、目標は${tg}%` : "") + "です。"); }
+        if (LV.co2){ c.push(sgN("🌍","CO₂（前年度）",LV.co2.t,"t",`軽油 ${LV.co2.L} L・${LV.co2.fy}`,dl(c))); t.push(`前年度の二酸化炭素の排出量は、軽油の使用で${LV.co2.t}トンでした。`); }
+        if (c.length) S.push({ key:"hl:eco", say:t.join(""), html:sgCard("🌱 リサイクルと環境", `<div class="sgnums">${c.join("")}</div>${foot}`) }); }
+      if (F.aw) S.push({ key:"hl:award", say:`表彰、認定、宣言を、合わせて${F.aw}件いただいています。` + (F.awT && F.awT.length ? `直近では、${F.awT.join("、")}などがあります。` : ""), html:sgCard("🏆 表彰・認定・宣言", `<div class="sgnums">${sgN("🏆","表彰・認定・宣言",F.aw,"件",esc((F.awT || []).slice(-1)[0] || ""))}</div>${foot}`) }); }
   }
   const fyN = f => String(f || "").split("-")[0] + "年度";
   if (ch === "flow"){
