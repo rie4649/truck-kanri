@@ -1039,7 +1039,7 @@
 
 <script>
 /* ===== アプリの版（直すたびに上げる。画面の上と印刷に出る） ===== */
-const APP_VER = "7.4", APP_VER_DATE = "2026年11月18日";
+const APP_VER = "7.5", APP_VER_DATE = "2026年11月18日";
 /* ===== Firebase ===== */
 firebase.initializeApp({
   apiKey: "AIzaSyD99Mx0MnGpLSQjV7830bS7-gdCBSM9DGY",
@@ -3381,27 +3381,30 @@ async function sgScenes(ch){ const D = await isoLoad(), F = sgFacts(D), pf = D.p
   { const X = sgScenesX(ch, D, F); if (X) return sgKeys(ch, X); }
   if (ch === "equip") D.ph = await isoPh();
   if (ch === "hello"){
-    S.push({ say:"ここが関根商店だよ！ぼく、スタック。ねねちゃんといっしょに、会社を紹介するね！", html:`<div class="sghero2"><img src="${intro}" alt="関根商店の外観" style="object-position:50% 22%;"><div><small>ようこそ</small><b>株式会社 関根商店</b><span>社内案内</span></div></div>` });
+    S.push({ say:"ここが株式会社関根商店です。これから、会社をご案内します。", html:`<div class="sghero2"><img src="${intro}" alt="関根商店の外観" style="object-position:50% 22%;"><div><small>ようこそ</small><b>株式会社 関根商店</b><span>社内案内</span></div></div>` });
     { const by = pf.employeesBreakdown || {}, bd = ["役員","作業員","事務員","パート"].filter(k => by[k]).map(k => k + " " + by[k] + "名").join("・");
       const bases = ["本社（上田市住吉）"].concat(D.h.filter(x => /倉庫取得|倉庫設置|新設倉庫/.test(x.text || "")).map(x => String(x.text).replace(/取得|設置/g, "").trim() + `（${x.date}）`));
       const rows = [["社名", pf.company || "株式会社 関根商店"], ["所在地", pf.address || "〒386-0002 " + SG_HP.addr], ["代表者", pf.rep || "代表取締役 関根 健巳"], ["設立", pf.founded || SG_HP.founded + "（昭和49年）"], ["資本金", "1,050万円"],
         ["従業員", F.staff + "名" + (bd ? `（${bd}）` : "")], ["事業内容", pf.business || "製鋼原料・非鉄金属・レアメタルの回収／機械のレイアウト・移動・解体／中古機械の引取り・販売／産業廃棄物・一般廃棄物の収集運搬・積替保管・中間処理"], ["拠点", bases.join("、")], ["電話", SG_HP.tel]];
-      S.push({ say:`関根商店は、${F.y0}年に長野県上田市の住吉でできた会社だよ。社員は${F.staff}人、本社のほかに倉庫もあるよ。`, html:sgCard("🏢 会社概要", `<dl class="sgdl">${rows.map(r => `<dt>${r[0]}</dt><dd>${esc(r[1])}</dd>`).join("")}</dl>`), btns:[["history","📜 沿革をぜんぶ見る"]] }); }
-    S.push({ say:"金属や非鉄金属の回収、機械の移動、産業廃棄物の収集運搬をしているよ。", html:sgCard("どんなお仕事？", `<div class="sgbiz"><div><span>🔩</span>金属・非鉄金属・レアメタルの回収</div><div style="animation-delay:.12s"><span>🏗</span>機械の移動・レイアウト・撤去</div><div style="animation-delay:.24s"><span>🚛</span>産業廃棄物の収集運搬・積替保管・中間処理</div><div style="animation-delay:.36s"><span>🤝</span>中古機械の引取り・販売</div></div>`) });
+      S.push({ say:`関根商店は、${F.y0}年に、長野県上田市で創業しました。1988年に上田バイパスが開通し、1996年には上信越自動車道が上田まで開通しました。道路の整備とともに、私たちの仕事も広がってきました。`, html:sgCard("🏢 会社概要", `<dl class="sgdl">${rows.map(r => `<dt>${r[0]}</dt><dd>${esc(r[1])}</dd>`).join("")}</dl>`), btns:[["history","📜 沿革をぜんぶ見る"]] }); }
+    S.push({ say:"関根商店の仕事は、大きく3つあります。金属や非鉄金属の回収、機械の移動、そして産業廃棄物の収集運搬です。どの仕事も、ISO14001に基づく環境管理のもとで、法令を守り、安全に行っています。", html:sgCard("どんなお仕事？", `<div class="sgbiz"><div><span>🔩</span>金属・非鉄金属・レアメタルの回収</div><div style="animation-delay:.12s"><span>🏗</span>機械の移動・レイアウト・撤去</div><div style="animation-delay:.24s"><span>🚛</span>産業廃棄物の収集運搬・積替保管・中間処理</div><div style="animation-delay:.36s"><span>🤝</span>中古機械の引取り・販売</div></div>`) });
     const nums = [sgN("🏢","創業から",F.years,"年"), sgN("👷","従業員",F.staff,"名",F.staffHp ? "ホームページより" : "",.08), sgN("🚛","トラック・車両",F.cars,"台",F.carsHp ? "ホームページより" : "",.16)];
     if (F.isoY) nums.push(sgN("🏅","ISO14001 取得から",new Date().getFullYear() - F.isoY,"年","",.24));
     if (F.aw) nums.push(sgN("🏆","表彰・認定",F.aw,"件",F.awT.join("・"),.32));
-    S.push({ say:`数字で見てみよう！創業から${F.years}年、従業員は${F.staff}人、車は${F.cars}台だよ。`, html:sgCard("数字で見る関根商店", `<div class="sgnums">${nums.join("")}</div>`) });
+    nums.push(sgN("🎓","有資格者",22,"名",`従業員${F.staff}名中`,.4), sgN("🏭","倉庫",3,"か所","本社のほか",.48), sgN("📜","許可",14,"件","期限のある許可",.56));   /* 版7.5：有資格者・倉庫・許可は「会社のいま」(2026.11.18時点)の数字。変わったらここを直す */
+    S.push({ say:`数字で見てみましょう。創業から${F.years}年です。従業員は${F.staff}名で、そのうち22名が資格を持っています。車両は${F.cars}台、倉庫は本社のほかに3か所あります。許可は14件、` + (F.isoY ? `ISO14001は取得から${new Date().getFullYear() - F.isoY}年になります。` : `ISO14001の認証も取得しています。`), html:sgCard("数字で見る関根商店", `<div class="sgnums">${nums.join("")}</div>`) });
     { const o = D.org || { upper:["株主総会","監査役・取締役会","代表取締役会長・代表取締役社長","専務・常務・業務","工場長"], depts:[{ name:"現場部門", items:["収集運搬","機械作業（機械移動含む）","中間処理（圧縮）"] }, { name:"事務部門", items:["総務","労務"] }, { name:"管理部門", items:["内部監査（環境管理・ＩＳＯ推進委員）","安全衛生管理","整備管理"] }] };
       const up = (o.upper || []).map(x => typeof x === "string" ? x : (x.name || "")).filter(Boolean), ds = o.depts || [];
-      S.push({ say:`会社のしくみだよ。${ds.map(d => d.name).join("、")}に分かれて、みんなで力を合わせているよ。`, html:sgCard("🏛 組織図", `<div class="sgorg">${up.map((u, i) => `${i ? `<div class="ar">▼</div>` : ""}<div class="u" style="animation-delay:${i*.12}s">${esc(u)}</div>`).join("")}<div class="ar">▼</div><div class="ds">${ds.map((d, i) => `<div class="d" style="animation-delay:${.6 + i*.15}s"><b>${esc(d.name)}</b>${(d.items || []).map(x => `<span>・${esc(typeof x === "string" ? x : x.name || "")}</span>`).join("")}</div>`).join("")}</div></div>`) }); }
-    if (D.h.length){ const eras = [["昭和", /昭和/], ["平成", /平成/], ["令和", /令和/]];
-      eras.forEach(([nm, re]) => { const L = D.h.filter(x => re.test(x.date || "")); if (!L.length) return;
-        const say = `${nm}のあゆみ。` + L.slice(0, 3).map(x => String(x.text || "").replace(/（[^）]*）|\([^)]*\)/g, "")).join("。") + (L.length > 3 ? "。ほかにもたくさんあるよ。" : "。");
-        S.push({ key:"hl:era:" + nm, say, html:sgCard(`📜 あゆみ（${nm}）`, `<div class="sgtl">${L.map((x, i) => `<div style="animation:sgIn .4s ${i*.08}s ease-out both"><b>${esc(x.date || "")}</b><span>${esc(x.text || "")}</span></div>`).join("")}</div>`), btns:[["history","📜 沿革をぜんぶ見る"]] }); }); }
+      S.push({ say:`会社の組織です。${ds.map(d => d.name).join("、")}に分かれ、力を合わせて仕事をしています。` + (() => { const by = pf.employeesBreakdown || {}, t = ["役員","作業員","事務員","パート"].filter(k => by[k]).map(k => k + by[k] + "名").join("、"); return t ? `従業員${F.staff}名の内訳は、${t}です。` : ""; })(), html:sgCard("🏛 組織図", `<div class="sgorg">${up.map((u, i) => `${i ? `<div class="ar">▼</div>` : ""}<div class="u" style="animation-delay:${i*.12}s">${esc(u)}</div>`).join("")}<div class="ar">▼</div><div class="ds">${ds.map((d, i) => `<div class="d" style="animation-delay:${.6 + i*.15}s"><b>${esc(d.name)}</b>${(d.items || []).map(x => `<span>・${esc(typeof x === "string" ? x : x.name || "")}</span>`).join("")}</div>`).join("")}</div></div>`) }); }
+    /* 版7.5：あゆみは1ページにまとめ、取引先・所属団体のページはやめて、許可・設備・環境・表彰のページを足した */
+    if (D.h.length){ S.push({ key:"hl:history", say:"これまでのあゆみです。昭和49年に有限会社関根商店を設立し、天井クレーンやトラックスケールを設置しました。平成には、産業廃棄物の収集運搬業と処分業の許可、そしてISO14001の認証を取得しました。令和には、一般建設業の許可を取得し、長野県SDGs推進事業にも登録しました。ほかにも、たくさんの歩みがあります。", html:sgCard("📜 関根商店のあゆみ", `<div class="sgtl">${D.h.map((x, i) => `<div style="animation:sgIn .4s ${Math.min(i, 12)*.06}s ease-out both"><b>${esc(x.date || "")}</b><span>${esc(x.text || "")}</span></div>`).join("")}</div>`), btns:[["history","📜 沿革をぜんぶ見る"]] }); }
+    { const foot = `<div style="text-align:right;font-size:11px;color:#64748b;margin-top:8px;">2026年11月18日時点</div>`, yN = new Date().getFullYear();
+      S.push({ key:"hl:permit", say:"許可を、14件管理しています。処分や運搬をお願いしている委託先は10社、契約は788件あります。どれも台帳で管理しています。", html:sgCard("📋 許可と契約", `<div class="sgnums">${[sgN("📜","許可",14,"件","期限のある許可"), sgN("🤝","委託先",10,"社","処分・運搬の委託先",.08), sgN("📑","契約",788,"件","マスタ管理の契約",.16)].join("")}</div>${foot}`) });
+      S.push({ key:"hl:equip", say:`車両は${F.cars}台あります。倉庫は、本社のほかに3か所あります。主な設備は、圧縮機が1台と、フロン関係の機器が2台です。`, html:sgCard("🚛 車両・倉庫・設備", `<div class="sgnums">${[sgN("🚛","保有車両",F.cars,"台"), sgN("🏭","倉庫",3,"か所","本社のほか",.08), sgN("🗜","圧縮機",1,"台","",.16), sgN("🧊","フロン機器",2,"台","",.24)].join("")}</div>${foot}`) });
+      { const bri = F.bri != null ? sgNum(F.bri, 1) : "61.3", tgt = F.briT != null ? F.briT : 80, isoN = F.isoY ? yN - F.isoY : 22;
+        S.push({ key:"hl:eco", say:`ISO14001は、${F.isoY || 2004}年の取得から${isoN}年になります。中間処理は、圧縮梱包施設で、1日あたり3.52トンの処理ができます。金属の切り粉をブリケットにする割合は、3年平均で${bri}%、目標は${tgt}%です。前年度の二酸化炭素の排出量は、軽油の使用で391トンでした。`, html:sgCard("🌱 リサイクルと環境", `<div class="sgnums">${[sgN("🏅","ISO14001 取得から",isoN,"年"), sgN("🗜","中間処理の能力","3.52","t/日","圧縮梱包施設",.08), sgN("🧱","ブリケット化率",bri,"%",`3年平均・目標${tgt}%`,.16), sgN("🌍","CO₂（前年度）","391","t","軽油の使用・2025年度",.24)].join("")}</div>${foot}`) }); }
+      S.push({ key:"hl:award", say:`表彰、認定、宣言を、合わせて${F.aw || 6}件いただいています。パートナーシップ構築宣言のほか、優良事業所の表彰などがあります。`, html:sgCard("🏆 表彰・認定・宣言", `<div class="sgnums">${[sgN("🏆","表彰・認定・宣言",F.aw || 6,"件","パートナーシップ構築宣言 ほか")].join("")}</div>${foot}`) }); }
   }
-  if (ch === "hello") S.push({ key:"hl:partner", say:"東京製鉄や三菱商事など、たくさんの会社といっしょにお仕事しているよ。地域の団体にも入って、みんなとつながっているんだ。",
-    html:sgCard("🤝 おもな取引先・所属団体（ホームページより）", `<h3 class="sgh3">おもな取引先</h3>${sgTiles(["エムエム建材","朝日工業","三菱商事","東京製鉄","コードー","キッツ","真岡製作所","恒成","草野産業","花村産業"].map(x => ["🏢", x]), "small")}<h3 class="sgh3">所属団体</h3>${sgTiles(["資源回収事業協同組合","長野県資源循環保全協会","倫理法人会","県自家用自動車協会","上田地域広域連合","上小労働基準協会","上田市商工会","上田市法人会"].map(x => ["🔗", x]), "small")}`) });
   const fyN = f => String(f || "").split("-")[0] + "年度";
   if (ch === "flow"){
     const st = [["🚛","運びこむ","お客さんの所から集めてくる"],["⚖️","計量","トラックスケールで重さを量る"],["🔎","選別","種類ごとに分ける"],["🗜","圧縮・ブリケット化","小さく、固くまとめる"],["🏭","出荷","資源として次の工場へ"]];
