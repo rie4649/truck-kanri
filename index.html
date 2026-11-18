@@ -1039,7 +1039,7 @@
 
 <script>
 /* ===== アプリの版（直すたびに上げる。画面の上と印刷に出る） ===== */
-const APP_VER = "7.3", APP_VER_DATE = "2026年11月16日";
+const APP_VER = "7.4", APP_VER_DATE = "2026年11月18日";
 /* ===== Firebase ===== */
 firebase.initializeApp({
   apiKey: "AIzaSyD99Mx0MnGpLSQjV7830bS7-gdCBSM9DGY",
@@ -3845,14 +3845,14 @@ function sgMouthStop(){ clearTimeout(sgMouthT); sgMouthT = null; if (GUIDE.talkW
 /* まばたき：ときどき目をつぶる（トップの2人と、話していないときの吹き出しの子） */
 setInterval(() => { document.querySelectorAll(".sgheroimg, #sgMeImg").forEach(im => { if (im.dataset.talk === "1" || Math.random() > .45) return; const w = im.dataset.who || "k"; im.src = SEK_FR[w].b; setTimeout(() => { if (im.dataset.talk !== "1") im.src = SEK_FR[w].c; }, 150); }); }, 1700);
 const sgWhoTxt = t => (sgWho() === "c" && t) ? t.replace(/ぼく/g, "わたし") : t;
-let sgVoice = null;
-function sgPickVoice(){ try { const vs = speechSynthesis.getVoices().filter(v => /^ja/i.test(v.lang)); sgVoice = vs.find(v => /kyoko|o-ren|haruka|nanami|ayumi|female|女性/i.test(v.name)) || vs.find(v => !/otoya|ichiro|keita|male|男性/i.test(v.name)) || vs[0] || null;   /* 子どもらしく聞こえるよう、高い声を元にする */ } catch(e){} }
+let sgVoice = null, sgVoiceM = null;   /* 版7.4：sgVoiceM = スタック(男の子)用の男性の声 */
+function sgPickVoice(){ try { const vs = speechSynthesis.getVoices().filter(v => /^ja/i.test(v.lang)); sgVoice = vs.find(v => /kyoko|o-ren|haruka|nanami|ayumi|female|女性/i.test(v.name)) || vs.find(v => !/otoya|ichiro|keita|male|男性/i.test(v.name)) || vs[0] || null; sgVoiceM = vs.find(v => /otoya|ichiro|keita|takumi|male|男性/i.test(v.name) && !/female/i.test(v.name)) || null;   /* 子どもらしく聞こえるよう、高い声を元にする */ } catch(e){} }
 try { speechSynthesis.onvoiceschanged = sgPickVoice; sgPickVoice(); } catch(e){}
 let sgTok = 0;
 function sgSpeak(t, done0){ try { speechSynthesis.cancel(); } catch(e){} const my = ++sgTok, done = done0 ? () => { if (my === sgTok) done0(); } : null;
   const who0 = sgWho();
   if (!sgSnd() || !t || !window.speechSynthesis){ const ms = Math.max(3500, t ? t.length * 150 : 3500); if (t) sgMouthStart(who0); setTimeout(() => { if (my === sgTok) sgMouthStop(); }, Math.min(ms, t ? t.length * 130 : 0)); if (done) setTimeout(done, ms); return; }
-  const u = new SpeechSynthesisUtterance(t.replace(/関根商店/g, "せきね商店").replace(/ISO14001/g, "アイエスオー14001").replace(/SDGs/g, "エスディージーズ")); u.lang = "ja-JP"; if (sgVoice) u.voice = sgVoice; if (sgWho() === "c"){ u.pitch = 1.7; u.rate = 1.0; } else { u.pitch = 2; u.rate = 0.98; } sgWhoSet();
+  const u = new SpeechSynthesisUtterance(t.replace(/関根商店/g, "せきね商店").replace(/ISO14001/g, "アイエスオー14001").replace(/SDGs/g, "エスディージーズ")); u.lang = "ja-JP"; if (sgWho() === "c"){ if (sgVoice) u.voice = sgVoice; u.pitch = 1.7; u.rate = 1.0; } else { u.voice = sgVoiceM || sgVoice || null; u.pitch = sgVoiceM ? 1.1 : 1.2; u.rate = 0.98; }   /* 版7.4：男の子は高すぎる声(pitch 2)をやめ、男性の声で落ち着いた高さに */ sgWhoSet();
   let fin = false; const end = () => { if (fin) return; fin = true; if (my === sgTok){ $("sgMeImg").classList.remove("talk"); sgMouthStop(); } if (done) done(); };
   u.onend = end; u.onerror = end; u.onstart = () => { if (my === sgTok) sgMouthStart(who0); }; $("sgMeImg").classList.add("talk"); sgMouthStart(who0); speechSynthesis.speak(u); setTimeout(end, 5000 + t.length * 260); }
 function sgStop(){ sgTok++; $("sgMeImg").classList.remove("talk"); sgMouthStop(); clearTimeout(SG.timer); try { speechSynthesis.cancel(); } catch(e){} }
