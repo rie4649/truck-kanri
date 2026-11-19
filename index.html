@@ -673,7 +673,7 @@
 </head>
 <body>
 <header>
-  <h1>🚚 トラック管理 <span class="ver" title="アプリの版">版 7.3</span></h1>
+  <h1>🚚 トラック管理 <span class="ver" id="appVerTxt" title="アプリの版">版 8.6</span></h1>
   <button id="installBtn" hidden>📲 ホーム画面に追加</button>
   <div class="sub">TRUCK ・ 車両カルテと置き場の配置図</div>
   <div class="tab-bar">
@@ -1039,7 +1039,7 @@
 
 <script>
 /* ===== アプリの版（直すたびに上げる。画面の上と印刷に出る） ===== */
-const APP_VER = "8.5", APP_VER_DATE = "2026年11月18日";
+const APP_VER = "8.6", APP_VER_DATE = "2026年11月19日"; try { document.getElementById("appVerTxt").textContent = "版 " + APP_VER; } catch(e){}
 /* ===== Firebase ===== */
 firebase.initializeApp({
   apiKey: "AIzaSyD99Mx0MnGpLSQjV7830bS7-gdCBSM9DGY",
