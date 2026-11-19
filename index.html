@@ -673,7 +673,7 @@
 </head>
 <body>
 <header>
-  <h1>🚚 トラック管理 <span class="ver" title="アプリの版">版 7.5</span></h1>
+  <h1>🚚 トラック管理 <span class="ver" title="アプリの版">版 7.3</span></h1>
   <button id="installBtn" hidden>📲 ホーム画面に追加</button>
   <div class="sub">TRUCK ・ 車両カルテと置き場の配置図</div>
   <div class="tab-bar">
@@ -931,8 +931,6 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
-<script src="https://rie4649.github.io/sekine-store/sekine-auth.js?v=1"></script>
 <script>
 /* ===== Firebase読み取り節約(通信の自動休止・再開) 2026-10 =====
    ・画面が見えていない(別タブ・最小化・スマホのスリープ)状態が5分続いたら、リアルタイム監視を止めます
@@ -1041,7 +1039,7 @@
 
 <script>
 /* ===== アプリの版（直すたびに上げる。画面の上と印刷に出る） ===== */
-const APP_VER = "8.0", APP_VER_DATE = "2026年11月18日";
+const APP_VER = "8.2", APP_VER_DATE = "2026年11月18日";
 /* ===== Firebase ===== */
 firebase.initializeApp({
   apiKey: "AIzaSyD99Mx0MnGpLSQjV7830bS7-gdCBSM9DGY",
@@ -1054,7 +1052,7 @@ const FV = firebase.firestore.FieldValue;
 const LAYOUT = db.collection("truck_parking").doc("layout");   // 配置の保存先(1ドキュメントに全部)
 
 // 点検ラクラクは別のFirebase(Realtime Database)。読むだけ
-let tenkenDB = null, tenkenAuthReady = Promise.resolve();
+let tenkenDB = null;
 try {
   const tk = firebase.initializeApp({
     apiKey:"AIzaSyA1GSV7KX6qMbIFIFz2ZhPNBVksiGxanKA",
@@ -1064,13 +1062,6 @@ try {
     appId:"1:546571524606:web:dbe38f12c4b6ab4ad148af"
   }, "tenken");
   tenkenDB = tk.database();
-  // 版7.4：点検ラクラクのデータベースに鍵(ルール「ログインした人だけ」)をかけるため、読む前に「匿名ログイン」をする。できないときは今までどおり読みにいく
-  try {
-    const au = tk.auth();
-    tenkenAuthReady = Promise.race([
-      new Promise(r => { const un = au.onAuthStateChanged(u => { un(); r(u); }); }).then(u => u || au.signInAnonymously()),
-      new Promise(r => setTimeout(r, 8000)) ]).catch(e => console.warn("点検ラクラクの匿名ログインができませんでした", e && e.code));
-  } catch(e){ console.warn("点検ラクラクのログインの部品がありません", e); }
 } catch(e){ console.error("点検ラクラクにつなげません", e); }
 
 /* ===== 置き場の形（航空写真をなぞった図。座標は写真のピクセル）。ppm = 1mあたりのピクセル
@@ -1284,7 +1275,7 @@ function tkLoadMonth(y, m){
   if (tkMonths[tag]) return tkMonths[tag];
   if (!tenkenDB) return Promise.resolve({});
   const prefix = "tenken_"+y+"_"+m+"_";
-  tkMonths[tag] = tenkenAuthReady.then(() => tenkenDB.ref("tenkenData").orderByKey().startAt(prefix).endAt(prefix+"").once("value").then(s => s.val() || {}).catch(e => { console.error(e); delete tkMonths[tag]; return {}; }));
+  tkMonths[tag] = tenkenDB.ref("tenkenData").orderByKey().startAt(prefix).endAt(prefix+"").once("value").then(s => s.val() || {}).catch(e => { console.error(e); delete tkMonths[tag]; return {}; });
   return tkMonths[tag];
 }
 
@@ -3347,7 +3338,7 @@ document.addEventListener("click", e => { const id = e.target && e.target.id; if
   if (id === "trSave"){ const v = $("trIn").value.trim(); $("trEditBox").hidden = true; if (v) saveTourTxt(tourI, v); } });
 /* ===== 社内案内：スタックが紹介する（ISO管理の数字を自動で読む） ===== */
 const SG_HP = { url:"https://sekine-s.co.jp/", tel:"0268-24-2292", addr:"長野県上田市住吉316-2", founded:"1974年9月26日" };   // 会社のホームページより
-const SG_CH = { strength:"💪 関根商店の強み", kikai:"🏗 機械作業", metal:"🔩 金属・レアメタル", kanri:"📋 こんなに管理しているよ", L_tenken:"🎓 点検ラクラクの使い方", L_hiki:"🎓 引取先管理の使い方", L_safety:"🎓 安全のきまり", L_manifest:"🎓 マニフェストのしくみ", L_mkaki:"🎓 マニフェストの書き方", L_manual:"🎓 環境手順書", L_dis:"🎓 災害のときの動き方", L_words:"🎓 関根商店のことば", flow:"♻️ 資源のゆくえ", equip:"🚛 車両と設備", permit:"📜 許可・資格・表彰", hello:"👋 こんにちは", tour:"🚶 社内案内（3D）", env:"🌱 環境・安全への取り組み", town:"🤝 地域といっしょに", end:"📞 おわりに" };
+const SG_CH = { strength:"💪 関根商店の強み", kikai:"🏗 機械作業", metal:"🔩 金属・レアメタル", kanri:"📋 こんなに管理しているよ", L_tenken:"🎓 点検ラクラクの使い方", L_hiki:"🎓 引取先管理の使い方", L_safety:"🎓 安全のきまり", L_manifest:"🎓 マニフェストのしくみ", L_mkaki:"🎓 マニフェストの書き方", L_manual:"🎓 環境手順書", L_dis:"🎓 災害のときの動き方", L_words:"🎓 社内用語集", flow:"♻️ 資源のゆくえ", equip:"🚛 車両と設備", permit:"📜 許可・資格・表彰", hello:"👋 こんにちは", tour:"🚶 社内案内（3D）", env:"🌱 環境・安全への取り組み", town:"🤝 地域といっしょに", end:"📞 おわりに" };
 const SG_ALL = ["hello","strength","kikai","metal","flow","tour","equip","permit","kanri","env","town","end"];
 const EMG_DEF = [["緊-01","油漏れ対策管理手順書"],["緊-02","飛散・落下対策管理手順書"],["緊-03","自然災害・地震対策手順書"],["緊-04","自然災害・風水害対策手順書"],["緊-05","災害・火災対策手順書"],["緊-07","緊急時連絡体制の手順書"],["緊-08","気象変動の手順書"]];
 const emgIcon = n => /油/.test(n) ? "🛢" : /飛散|落下/.test(n) ? "🪨" : /地震/.test(n) ? "🌏" : /風水|水害|大雨|台風/.test(n) ? "🌊" : /火災|火事/.test(n) ? "🔥" : /感染/.test(n) ? "😷" : /連絡/.test(n) ? "📞" : /気象|気候|熱/.test(n) ? "🌡" : /電池/.test(n) ? "🔋" : "📘";
@@ -3442,12 +3433,15 @@ async function sgScenes(ch){ const [D, X] = await Promise.all([isoLoad(), ch ===
         if (LV.vendor != null){ c.push(sgN("🤝","委託先",LV.vendor,"社","処分・運搬の委託先",dl(c))); t.push(`処分や運搬をお願いしている委託先は、${LV.vendor}社です。`); }
         if (LV.contract != null){ c.push(sgN("📑","契約",LV.contract,"件","マスタ管理の契約",dl(c))); t.push(`契約は、${LV.contract}件あります。`); }
         if (c.length) S.push({ key:"hl:permit", say:t.join("") + "どれも台帳で管理しています。", html:sgCard("📋 許可と契約", `<div class="sgnums">${c.join("")}</div>${foot}`) }); }
-      { const c = [sgN("🚛","保有車両",F.cars,"台")], t = [`車両は${F.cars}台あります。`], eq = [];   /* 車両・倉庫・設備 */
+      { const c = [sgN("🚛","保有車両",F.cars,"台")], t = [`車両は${F.cars}台あります。`];   /* 版8.2：設備は図（写真）で見せる。ISO管理の台帳・写真から自動 */
         if (LV.wh != null){ c.push(sgN("🏭","倉庫",LV.wh,"か所","本社のほか",dl(c))); t.push(`倉庫は、本社のほかに${LV.wh}か所あります。`); }
-        if (LV.cm){ c.push(sgN("🗜","圧縮機",LV.cm,"台","",dl(c))); eq.push(`圧縮機が${LV.cm}台`); }
-        if (LV.fe){ c.push(sgN("🧊","フロン機器",LV.fe,"台","",dl(c))); eq.push(`フロン関係の機器が${LV.fe}台`); }
-        if (eq.length) t.push(`主な設備は、${eq.join("と")}です。`);
-        S.push({ key:"hl:equip", say:t.join(""), html:sgCard("🚛 車両・倉庫・設備", `<div class="sgnums">${c.join("")}</div>${foot}`) }); }
+        const mn = x => (D.ph.filter(p => p.targetId === x).sort((a, b) => (b.isMain ? 1 : 0) - (a.isMain ? 1 : 0))[0] || {}).thumb, E = [], seenE = new Set(D.cm.map(m => "e:" + m.name)), G = {};
+        D.cm.forEach(m => E.push({ n:/圧縮|梱包/.test(m.type || "") ? m.type : (m.type || m.name), k:1, u:"台", s:[m.maker, m.name].filter(Boolean).join(" "), t:mn("e:" + m.name) }));
+        D.ph.filter(p => p.kind === "equip" && !seenE.has(p.targetId)).forEach(p => { const nm = String(p.targetName || "").trim(); if (!/ブリケット|被覆|剥/.test(nm)) return; const b = nm.replace(/[\s　]*[0-9０-９]+$/, ""), g = G[b] = G[b] || { ids:new Set(), t:null }; g.ids.add(p.targetId); if (!g.t) g.t = mn(p.targetId); });
+        Object.keys(G).forEach(b => E.push({ n:b, k:G[b].ids.size, u:"台", s:"", t:G[b].t }));
+        E.push({ n:"リフマグ", k:2, u:"基", s:"天井クレーン", t:SGI.m2 });   /* マグネット2基（写真は案内に入っているもの） */
+        t.push(`構内には、${E.map(x => `${x.n}が${x.k}${x.u}`).join("、")}があります。`);
+        S.push({ key:"hl:equip", say:t.join(""), html:sgCard("🚛 車両・倉庫・設備", `<div class="sgnums">${c.join("")}</div><div class="sgph" style="margin-top:12px;">${E.map((x, n) => `<figure style="animation-delay:${n*.1}s">${x.t ? `<img src="${x.t}" alt="">` : `<div class="noimg">⚙️</div>`}<figcaption>${esc(x.n)}　${x.k}${x.u}${x.s ? `<small>${esc(x.s)}</small>` : ""}</figcaption></figure>`).join("")}</div>${foot}`) }); }
       { const c = [], t = [];   /* リサイクルと環境 */
         if (F.isoY){ const n = yN - F.isoY; c.push(sgN("🏅","ISO14001 取得から",n,"年","",dl(c))); t.push(`ISO14001は、${F.isoY}年の取得から${n}年になります。`); }
         if (LV.mid){ c.push(sgN("🗜","中間処理の能力",LV.mid.v,LV.mid.unit,LV.mid.type || "処分業の許可",dl(c))); t.push(`中間処理は、${LV.mid.type ? LV.mid.type + "で、" : ""}${LV.mid.say}の処理ができます。`); }
@@ -3458,10 +3452,8 @@ async function sgScenes(ch){ const [D, X] = await Promise.all([isoLoad(), ch ===
         const AW = D.h.filter(x => /表彰|優良法人|認定|推進事業登録|宣言/.test(x.text || "")), kd = t => /宣言/.test(t) ? "宣言" : /認定|推進事業登録/.test(t) ? "認定" : "表彰", ic = { "表彰":"🏆", "認定":"📜", "宣言":"📣" }, cl = t => String(t || "").replace(/（[^）]*）|\([^)]*\)/g, "").trim(), cnt = {};
         AW.forEach(x => { const k = kd(x.text || ""); cnt[k] = (cnt[k] || 0) + 1; });
         const ks = ["表彰","認定","宣言"].filter(k => cnt[k]);
-        S.push({ key:"hl:award", say:`表彰、認定、宣言を、合わせて${F.aw}件いただいています。` + ks.map(k => `${k}が${cnt[k]}件`).join("、") + "です。" + (F.awT && F.awT.length ? `直近では、${F.awT.join("、")}などがあります。` : "") + "次から、一件ずつご紹介します。",
-          html:sgCard("🏆 表彰・認定・宣言", `<div class="sgnums">${ks.map((k, n) => sgN(ic[k], k, cnt[k], "件", "", n*.1)).join("")}</div><div class="sgtl" style="margin-top:10px;">${AW.map((x, n) => `<div style="animation:sgIn .4s ${Math.min(n, 12)*.06}s ease-out both"><b>${esc(x.date || "")}</b><span>${ic[kd(x.text || "")]} ${esc(x.text || "")}</span></div>`).join("")}</div>${foot}`) });
-        AW.forEach((x, n) => { const k = kd(x.text || ""), t = cl(x.text);
-          S.push({ key:"hl:award:" + n, say:`${x.date ? x.date + "、" : ""}${t}。`, html:sgCard(`${ic[k]} ${k}`, `<div style="font-size:13px;color:#ea580c;font-weight:700;">${esc(x.date || "")}</div><div style="font-size:20px;font-weight:700;line-height:1.6;margin:6px 0 10px;">${esc(x.text || "")}</div><div style="font-size:12px;color:#64748b;">${n + 1} / ${AW.length}</div>`), btns:[["history","📜 沿革をぜんぶ見る"]] }); }); } }
+        S.push({ key:"hl:award", say:`表彰、認定、宣言を、合わせて${F.aw}件いただいています。` + ks.map(k => `${k}が${cnt[k]}件`).join("、") + "です。" + (F.awT && F.awT.length ? `直近では、${F.awT.join("、")}などがあります。` : ""),
+          html:sgCard("🏆 表彰・認定・宣言", `<div class="sgnums">${ks.map((k, n) => sgN(ic[k], k, cnt[k], "件", "", n*.1)).join("")}</div><div class="sgtl" style="margin-top:10px;">${AW.map((x, n) => `<div style="animation:sgIn .4s ${Math.min(n, 12)*.06}s ease-out both"><b>${esc(x.date || "")}</b><span>${ic[kd(x.text || "")]} ${esc(x.text || "")}</span></div>`).join("")}</div>${foot}`) }); } }
   }
   const fyN = f => String(f || "").split("-")[0] + "年度";
   if (ch === "flow"){
@@ -3506,7 +3498,7 @@ async function sgScenes(ch){ const [D, X] = await Promise.all([isoLoad(), ch ===
     const eq = []; D.cm.forEach(c => eq.push({ n:c.name, s:[c.type, c.maker].filter(Boolean).join("・"), t:main("e:" + c.name) }));
     const seen = new Set(eq.map(e => "e:" + e.n)); D.ph.filter(p => p.kind === "equip" && !seen.has(p.targetId)).forEach(p => { if (!/エアコン|空調|冷蔵|冷凍/.test(p.targetName || "")){ seen.add(p.targetId); eq.push({ n:p.targetName, s:"", t:main(p.targetId) }); } });
     if (!eq.length) [["🗜","圧縮梱包機"],["🧱","ブリケットマシン"],["⚖️","トラックスケール"],["🚜","フォークリフト"]].forEach(([i, n]) => eq.push({ n, i }));
-    S.push({ say:"大きな機械もたくさんあります。重さを量ったり、圧縮して固めたりします。", html:sgCard("⚙️ 主な設備", `<div class="sgph">${eq.slice(0,8).map(x => `<figure>${x.t ? `<img src="${x.t}" alt="">` : `<div class="noimg">${x.i || "⚙️"}</div>`}<figcaption>${esc(x.n)}${x.s ? `<small>${esc(x.s)}</small>` : ""}</figcaption></figure>`).join("")}</div>`) });
+    /* 版8.2：設備の図は「こんにちは」の章の「車両・倉庫・設備」に集約（ダブり解消） */
   }
   if (ch === "permit"){
     const P = [["🚛","産業廃棄物 収集運搬業","長野県・新潟県・群馬県・山梨県・埼玉県","工場などから出た産業廃棄物を集めて運べる"],["⚙️","産業廃棄物 処分業","長野県","廃プラスチック類を圧縮梱包できる（中間処理）"],["🏘","一般廃棄物 収集運搬業","長野市・中野市・千曲市・坂城町・上田市・東御市","市や町のごみも集めて運べる"],["🏗","一般建設業（とび・土工工事業）","","機械の据付・アンカー工事などができる"],["⚖️","計量証明事業","長野県","トラックスケールで、正しい重さを証明できる"],["📦","古物商","長野県公安委員会","中古の機械を買い取って売れる"],["🔩","特定金属くず買受業・金属くず商","","金属を買い取れる"]];
@@ -3635,17 +3627,21 @@ function sgScenesX(ch, D, F){ const S = [];
       html:sgCard("🚛 セルフ", sgGal([[SGI.sf_diag,"ななめ前から"],[SGI.sf_front,"前から"],[SGI.sf_rear,"うしろから"],[SGI.sf_door,"ドア"]])) });
   }
   if (ch === "metal"){
-    S.push({ key:"mt:1", say:"関根商店は、社会を支える鉄をリサイクルして、資源をもう一度使えるようにしているよ。", html:sgPhoto(SGI.m1, "資源再利用に貢献しています", "社会を支える「鉄」をリサイクル", "金属リサイクル") });
-    S.push({ key:"mt:2", say:"鉄のリサイクルは、ぐるっと回る輪になっているんだ。工場から出た鉄くずを関根商店が集めて、製鉄所へ運ぶ。製鉄所でとかして、また新しい鉄になるんだよ。",
-      html:sgCard("🔄 鉄のリサイクルのしくみ", `<div class="sgring"><div class="rg"></div>${[["🏭","製鉄所","とかして再生"],["🏗","工場","鉄くずが出る"],["🚛","回収","関根商店のトラック"],["🏢","関根商店","選別・まとめる"],["🚚","搬入","製鉄所へ"]].map((x, i) => `<div class="nd n${i}" style="animation-delay:${i*.6}s"><span>${x[0]}</span><b>${x[1]}</b><small>${x[2]}</small></div>`).join("")}<div class="tk">🚛</div></div>`) });
+    S.push({ key:"mt:1", say:"関根商店は、社会を支える鉄を、リサイクルしています。工場などから出る鉄くずや、使い終わった金属を回収し、種類ごとに選別して、再び使える資源にします。鉄のほか、銅やアルミなどの非鉄金属、パソコンの基板などのレアメタルも扱っています。", html:sgPhoto(SGI.m1, "資源再利用に貢献しています", "社会を支える「鉄」をリサイクル", "金属リサイクル") });
+    S.push({ key:"mt:1b", say:"資源を繰り返し使うことで、新しく鉱石を掘る量と、捨てられる廃棄物を減らし、環境への負担を小さくします。金属の切り粉は、圧縮して固め、ブリケットにして、原料として再利用します。これらの仕事は、ISO14001に基づく環境管理のもとで、許可と法令を守って行っています。",
+      html:sgCard("♻️ 資源再利用で、できること", sgTiles([["🔎","種類ごとに選別","鉄・非鉄金属・レアメタルを分ける"],["🧱","切り粉をブリケットに","圧縮して固め、原料として再利用"],["🌍","資源を繰り返し使う","鉱石の採掘と、廃棄物を減らす"],["📜","許可と法令を守る","ISO14001の環境管理のもとで"]])) });
+    S.push({ key:"mt:2", say:"鉄のリサイクルは、ぐるっと回る輪になっています。工場から出た鉄くずを、関根商店が回収し、選別して、資源として次の工程へ送ります。そこで再び原料となり、新しい鉄になります。",
+      html:sgCard("🔄 鉄のリサイクルのしくみ", `<div class="sgring"><div class="rg"></div>${[["🏭","再資源化","新しい鉄になる"],["🏗","工場","鉄くずが出る"],["🚛","回収","関根商店のトラック"],["🏢","関根商店","選別・まとめる"],["🚚","次の工程へ","資源として送る"]].map((x, i) => `<div class="nd n${i}" style="animation-delay:${i*.6}s"><span>${x[0]}</span><b>${x[1]}</b><small>${x[2]}</small></div>`).join("")}<div class="tk">🚛</div></div>`) });
     S.push({ key:"mt:3", say:"鉄は「産業の米」っていわれるくらい、いろんな物に使われているんだ。金属は、何度でもリサイクルできる大切な資源なんだよ。",
       html:sgCard("🍚 「産業の米」といわれる鉄", sgTiles([["🏙","ビル・橋・車・機械","くらしのいろんな所に鉄"],["♾️","金属は半永久的に使える","とかして、また使える大切な資源"],["⛏","地下の資源にはかぎりがある","だから、くり返し使うことが大事"],["🌏","SDGs 12「つくる責任 つかう責任」","資源を大切に使う"]])) });
     S.push({ key:"mt:4", say:"鉄だけじゃなくて、アルミ、ステンレス、銅や真鍮、電線やモーターまで、いろんな金属をあつかっているよ。",
       html:sgCard("🔩 あつかう金属", `<div class="sgcat">${[["鉄くず","新断・鉄筋・H鋼・切断・甲山・ダライ粉"],["アルミ","新切・アルミサッシ・ダイカスト・ラジエーター・アルミ缶・アルミホイル"],["ステンレス","304・316・クローム系・解体ステン"],["銅・真鍮","2号銅・下銅・真鍮・込中・ワイヤーカット"],["その他","エナメル線・被覆線・超硬・ニッケル・銅粉・アルミ粉・ステン粉・鉛・モーター"],["機械","コンプレッサー・定盤・モーターなど、いらなくなった工業機械"]].map((x, i) => `<div style="animation-delay:${i*.1}s"><b>${x[0]}</b><span>${x[1]}</span></div>`).join("")}</div>`) });
     S.push({ key:"mt:5", say:"パソコンの基板やCPUの中には、金や銀、レアメタルという宝物がかくれているんだ。まちの中の鉱山、都市鉱山っていうんだよ。",
       html:sgCard("💎 レアメタル回収（都市鉱山）", sgTiles([["🥇","金・銀"],["⚙️","モリブデン・チタン・インコネル"],["🖥","CPU・ハードディスク基板"],["💻","デスクトップ・ノートパソコンの基板"],["🔌","リードフレーム・混在基板"]])) });
-    S.push({ key:"mt:6", say:"天井クレーンの大きな磁石、リフマグで、鉄をトラックに積みこむよ。長野県のいろんな町と、山梨・群馬・埼玉からも集めているんだ。",
+    S.push({ key:"mt:6", say:"天井クレーンに付けた、大きな磁石、リフマグで、鉄をトラックに積みこみます。磁石で鉄をまとめてつかんで持ち上げるので、人の手で積むより、短い時間で、たくさん積めます。回収は、長野県の各地のほか、山梨県、群馬県、埼玉県でも行っています。",
       html:sgCard("🧲 リフマグで積みこみ", sgGal([[SGI.m2,"天井クレーンのリフマグ"],[SGI.m1,"トラックに積みこむ"]]) + `<div class="sgok">📍 長野県（上田市・佐久市・松本市・長野市・飯田市など）／山梨県・群馬県・埼玉県</div>`) });
+    S.push({ key:"mt:6b", say:"リフマグでの作業は、安全が第一です。吊った荷の下には、絶対に入りません。作業の前に、周囲に人がいないかを確認し、合図をそろえて、ゆっくり動かします。雷のおそれがあるときと、強風のときは、クレーンを止めます。",
+      html:sgCard("🧲 リフマグのしくみと安全", sgTiles([["🧲","鉄をまとめてつかむ","磁石に付く金属を、一度に持ち上げる"],["🏗","天井クレーンで運ぶ","ヤードから、トラックの荷台へ"],["🦺","吊り荷の下には入らない","作業前に周囲を確認・合図をそろえる"],["⛈","雷・強風のときは止める","天井クレーンの使用を中止"]])) });
   }
   if (ch === "kanri"){
     const fy = F.fy, inFy = x => { const d = x.date || ""; return d && sgFy(String(d).slice(0,7)) === fy; };
@@ -3663,7 +3659,7 @@ function sgScenesX(ch, D, F){ const S = [];
   return S.length ? S : null; }
 /* 災害の章（env の中で使う） */
 function sgDisScenes(D){ const S = [];
-  S.push({ key:"ds:0", say:"もしもの時のために、災害ごとの手順書を決めているよ。カードを押すと、くわしい手順が見られるんだ。",
+  S.push({ key:"ds:0", say:"もしものときのために、災害や事故ごとに、環境手順書を定めています。カードを押すと、それぞれの詳しい手順が、見られます。ふだんから、内容を確認しておいてください。",
     html:sgCard("🛡 災害への備え（環境手順書より）", `<div class="sgdis">${DIS.map((d, i) => `<button data-sgd="dis:${d.k}" style="animation-delay:${i*.08}s"><span>${d.i}</span><b>${d.t}</b><small>${d.no}</small></button>`).join("")}</div>`), btns:[["manuals","📘 環境手順書の一覧"]] });
   DIS.forEach(d => S.push({ key:"ds:" + d.k, say:d.say, html:sgCard(`${d.i} ${d.t}のとき`, sgDisHtml(d)), btns:[["pdf:" + d.no, "📄 本物の手順書を開く"]].concat(d.k === "fire" ? [["ext","🧯 消火器の置き場図"]] : []) }));
   return S; }
@@ -3710,7 +3706,7 @@ async function anRender(){ $("anTabs").innerHTML = anTabs(); const B = $("anBody
         ${ph ? `<img src="${ph.src}" alt="" class="anpimg">` : ""}<div class="anbt"><button data-anpgs="${p.id}">✓ 保存</button><label class="anadd">📷 写真${ph ? "を変える" : "をつける"}<input type="file" data-anpgph="${p.id}" accept="image/*" hidden></label><button class="sub" data-anpgo="${p.id}:-1" ${k ? "" : "disabled"}>▲</button><button class="sub" data-anpgo="${p.id}:1" ${k < P.length - 1 ? "" : "disabled"}>▼</button><button class="sub" data-anpgd="${p.id}">消す</button></div></div>`; }).join("")}
       <div class="anpage new"><b>＋ 新しいページ</b><label>見出し<input id="anNT" placeholder="例：マニフェストのA票の書き方" value="${esc((AN.draft || {}).anNT || "")}"></label><label>セリフ（スタック・ねねちゃんが話す）<textarea id="anNS" rows="2">${esc((AN.draft || {}).anNS || "")}</textarea></label><label>画面に出す文（なくてもOK）<textarea id="anNX" rows="3">${esc((AN.draft || {}).anNX || "")}</textarea></label><label class="anadd">📷 写真をつける（なくてもOK）<input type="file" id="anNP" accept="image/*" hidden></label><span id="anNPn" class="note"></span><div class="anbt"><button id="anNew">＋ このページを足す</button></div></div></div>`; return; }
   if (AN.tab === "word"){ const W = lesWords(true);
-    B.innerHTML = `<div class="anform"><p class="note">研修の「関根商店のことば」に出ます。</p>${W.map(w => `<div class="anword"><input data-anw="${w.id}:w" value="${esc(w.w)}" placeholder="ことば"><textarea data-anw="${w.id}:m" rows="2" placeholder="意味">${esc(w.m)}</textarea><div class="anbt"><button data-anws="${w.id}">✓</button><button class="sub" data-anwd="${w.id}">消す</button></div></div>`).join("")}
+    B.innerHTML = `<div class="anform"><p class="note">研修の「社内用語集」に出ます。</p>${W.map(w => `<div class="anword"><input data-anw="${w.id}:w" value="${esc(w.w)}" placeholder="ことば"><textarea data-anw="${w.id}:m" rows="2" placeholder="意味">${esc(w.m)}</textarea><div class="anbt"><button data-anws="${w.id}">✓</button><button class="sub" data-anwd="${w.id}">消す</button></div></div>`).join("")}
       <div class="anword new"><input id="anWW" placeholder="新しいことば（例：台貫）" value="${esc((AN.draft || {}).anWW || "")}"><textarea id="anWM" rows="2" placeholder="意味">${esc((AN.draft || {}).anWM || "")}</textarea><div class="anbt"><button id="anWAdd">＋ 足す</button></div></div></div>`; return; } }
 function anTourSet(i, patch){ const ov = Object.assign({}, (((layout.zmap || {})["4"] || {}).tour) || {}); ov[i] = Object.assign({}, ov[i] || {}, patch);
   layout.zmap = layout.zmap || {}; layout.zmap["4"] = Object.assign({}, layout.zmap["4"] || {}, { tour:ov }); if (trial && sharedLayout){ sharedLayout.zmap = sharedLayout.zmap || {}; sharedLayout.zmap["4"] = Object.assign({}, sharedLayout.zmap["4"] || {}, { tour:ov }); }
@@ -3778,7 +3774,7 @@ const LES_W = [["台貫（だいかん）","トラックスケールのこと。
 const LES = [
   { k:"L_tenken", i:"🚛", t:"点検ラクラクの使い方" }, { k:"L_hiki", i:"📒", t:"引取先管理（作業日報）の使い方" },
   { k:"L_safety", i:"⛑", t:"安全のきまり" }, { k:"L_manifest", i:"📄", t:"マニフェストのしくみ" }, { k:"L_mkaki", i:"✍️", t:"マニフェストの書き方" },
-  { k:"L_manual", i:"📘", t:"環境手順書" }, { k:"L_dis", i:"🛡", t:"災害のときの動き方" }, { k:"L_words", i:"📖", t:"関根商店のことば" }, { k:"tour", i:"🚶", t:"社内の場所（3D）" }];
+  { k:"L_manual", i:"📘", t:"環境手順書" }, { k:"L_words", i:"📖", t:"社内用語集" }, { k:"tour", i:"🚶", t:"社内の場所（3D）" }];
 const lesDone = () => { try { return JSON.parse(localStorage.getItem("sg_les") || "{}"); } catch(e){ return {}; } };
 function lesMark(k){ try { const o = lesDone(); o[k] = sgYmd(); localStorage.setItem("sg_les", JSON.stringify(o)); } catch(e){} }
 function lesMenu(){ sgStop(); SG.mode = "les"; const dn = lesDone(), n = LES.filter(l => dn[l.k]).length;
@@ -3831,11 +3827,11 @@ function lesScenes(k, D){ const S = [];
     S.push({ key:"mk:4", say:"処分が終わると、C2票が関根商店にもどってくるよ。これも5年間とっておこう。書きまちがえたら、二重線を引いて書き直してね。", html:sgCard("③ 事務所でのしまつ", sgTiles([["📮","C2票がもどってくる","処分が終わったしるし。5年間保管"],["🗄","B1票・C2票は5年保管","手順書07"],["✏️","書きまちがえたら","二重線で消して書き直す（会社の決まりに合わせてね）"],["❓","わからない時は事務所へ","勝手に書きかえない"]])) }); }
   if (k === "L_manual"){
     const M = [["🏢","07","マニフェストの管理手順書","伝票の流れ・10日以内の返送・5年保管・6月の報告・電子は3日以内"],["🔩","09","産業廃棄物（金属）の排出の手順書","許可車両で運ぶ・密閉物を積まない・ロープやガッチャで固定"],["🔊","12","騒音チェック","圧縮梱包機を月1回測る・昼70dB以下・振動は5年に1回"],["🚜","18","フォークリフトの手順書","ヘルメット・ツメに注意・社内10km/h・月次点検"],["🔋","34","電池類の回収・出荷","端子にテープ・種類ごとに分ける・金属と混ぜない"],["🛢","緊-01","油漏れ","吸着マットで止める・すぐ報告・広げない"],["🪨","緊-02","飛散・落下","ワイヤーとロープで固定"],["🌏","緊-03","地震","頭を守る・あわてて出ない・大型駐車場へ"],["🌀","緊-04","風水害","外に出ない・雷はクレーンを止める・伝言ダイヤル171"],["🔥","緊-05","火災","「火事だ！」・初期消火・人命第一・119"],["📞","緊-07","緊急時連絡体制","連絡先一覧・時間外は役員携帯"],["🌡","緊-08","気象変動","豪雨・強風・猛暑・大雪の手順"]];
-    S.push({ key:"lmn:1", say:"環境手順書は、仕事のやり方を決めた本だよ。50冊以上あるけど、まずはこの12冊を覚えよう。カードの本物の手順書ボタンで、中身も読めるよ。", html:sgCard("📘 まず覚えたい手順書", `<div class="sgcat">${M.map((x, i) => `<div style="animation-delay:${i*.05}s"><b>${x[0]} ${x[1]}　${x[2]}</b><span>${x[3]}</span></div>`).join("")}</div>`), btns:[["manuals","📘 手順書の一覧"],["pdf:07","📄 07 マニフェスト"],["pdf:18","📄 18 フォークリフト"]] }); }
+    S.push({ key:"lmn:1", say:"環境手順書は、仕事のやり方を決めた本だよ。50冊以上あるけど、まずはこの12冊を覚えよう。カードの本物の手順書ボタンで、中身も読めるよ。", html:sgCard("📘 まず覚えたい手順書", `<div class="sgcat">${M.map((x, i) => `<div style="animation-delay:${i*.05}s"><b>${x[0]} ${x[1]}　${x[2]}</b><span>${x[3]}</span></div>`).join("")}</div>`), btns:[["manuals","📘 手順書の一覧"],["pdf:07","📄 07 マニフェスト"],["pdf:18","📄 18 フォークリフト"]] });  sgDisScenes(D).forEach(x => S.push(x)); }
   if (k === "L_dis"){ sgDisScenes(D).forEach(s => S.push(s)); }
   if (k === "L_words"){
     const W = lesWords().map(x => [x.w, x.m]);
-    S.push({ key:"lw:1", say:"関根商店でよく使うことばを覚えよう。台貫はトラックスケール、リフマグは大きな磁石のことだよ。", html:sgCard("📖 関根商店のことば", `<div class="sgcat">${W.map((x, i) => `<div style="animation-delay:${i*.05}s"><b>${x[0]}</b><span>${x[1]}</span></div>`).join("")}</div>`) }); }
+    S.push({ key:"lw:1", say:"仕事や、ISOの勉強で使う、大切な言葉をまとめています。分からない言葉は、ここで確認してください。", html:sgCard("📖 社内用語集", `<div class="sgcat">${W.map((x, i) => `<div style="animation-delay:${i*.05}s"><b>${x[0]}</b><span>${x[1]}</span></div>`).join("")}</div>`) }); }
   return S; }
 /* 本物の手順書（ISO管理に入っているファイル）を開く */
 async function sgOpenManual(no){ const D = await isoLoad(); const m = D.man.find(x => String(x.no) === String(no)); const a = m && (m.attachments || []).find(x => x.fileId);
@@ -3936,7 +3932,7 @@ async function sgChapter(i){ sgStop(); if (i >= SG.list.length && stkOn()){ sgCl
   if (ch === "tour" && stkOn()){ sgChapter(i + 1); return; }   /* スタック連動中は3Dの歩く案内を飛ばす(声をこの画面で出すため) */
   if (ch === "tour"){ $("sgShow").hidden = true; tourOnDone = () => sgChapter(SG.ci + 1); tourStart(SG.ci > 0); return; }
   $("sgShow").hidden = false; $("sgTitle").textContent = SG_CH[ch] || ch; $("sgBody").innerHTML = `<div class="sgcard" style="text-align:center;">読みこみ中…</div>`; $("sgSay").textContent = "";
-  SG.scenes = (await sgScenes(ch)).concat(anPageScenes(ch)); SG.si = -1; sgScene(0); }
+  SG.scenes = (await sgScenes(ch)).concat(anPageScenes(ch)).concat(ch === "L_manual" ? anPageScenes("L_dis") : []); SG.si = -1; sgScene(0); }
 function sgScene(k){ sgStop(); if (k < 0) k = 0; if (k >= SG.scenes.length){ sgChapter(SG.ci + 1); return; } SG.si = k; const sc = SG.scenes[k];
   $("sgDots").innerHTML = SG.scenes.map((x, j) => `<i class="${j === k ? "on" : ""}"></i>`).join(""); $("sgPlay").textContent = SG.play ? "⏸" : "▶";
   if (sc.evac && stkOn()){ sgScene(k + 1); return; }
