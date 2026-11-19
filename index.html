@@ -673,7 +673,7 @@
 </head>
 <body>
 <header>
-  <h1>🚚 トラック管理 <span class="ver" id="appVerTxt" title="アプリの版">版 8.6</span></h1>
+  <h1>🚚 トラック管理 <span class="ver" id="appVerTxt" title="アプリの版">版 8.7</span></h1>
   <button id="installBtn" hidden>📲 ホーム画面に追加</button>
   <div class="sub">TRUCK ・ 車両カルテと置き場の配置図</div>
   <div class="tab-bar">
@@ -1039,7 +1039,7 @@
 
 <script>
 /* ===== アプリの版（直すたびに上げる。画面の上と印刷に出る） ===== */
-const APP_VER = "8.6", APP_VER_DATE = "2026年11月19日"; try { document.getElementById("appVerTxt").textContent = "版 " + APP_VER; } catch(e){}
+const APP_VER = "8.7", APP_VER_DATE = "2026年11月19日"; try { document.getElementById("appVerTxt").textContent = "版 " + APP_VER; } catch(e){}
 /* ===== Firebase ===== */
 firebase.initializeApp({
   apiKey: "AIzaSyD99Mx0MnGpLSQjV7830bS7-gdCBSM9DGY",
@@ -3338,7 +3338,7 @@ document.addEventListener("click", e => { const id = e.target && e.target.id; if
   if (id === "trSave"){ const v = $("trIn").value.trim(); $("trEditBox").hidden = true; if (v) saveTourTxt(tourI, v); } });
 /* ===== 社内案内：スタックが紹介する（ISO管理の数字を自動で読む） ===== */
 const SG_HP = { url:"https://sekine-s.co.jp/", tel:"0268-24-2292", addr:"長野県上田市住吉316-2", founded:"1974年9月26日" };   // 会社のホームページより
-const SG_CH = { strength:"💪 関根商店の強み", kikai:"🏗 機械作業", metal:"🔩 金属・レアメタル", kanri:"📋 こんなに管理しているよ", L_tenken:"🎓 点検ラクラクの使い方", L_hiki:"🎓 引取先管理の使い方", L_safety:"🎓 安全のきまり", L_manifest:"🎓 マニフェストのしくみ", L_mkaki:"🎓 マニフェストの書き方", L_manual:"🎓 環境手順書", L_dispose:"🎓 廃棄物の処分先", L_dis:"🎓 災害のときの動き方", L_words:"🎓 社内用語集", flow:"♻️ 資源のゆくえ", equip:"🚛 車両と設備", permit:"📜 許可・資格・表彰", hello:"👋 こんにちは", tour:"🚶 社内案内（3D）", env:"🌱 環境・安全への取り組み", town:"🤝 地域といっしょに", end:"📞 おわりに" };
+const SG_CH = { strength:"💪 関根商店の強み", kikai:"🏗 機械作業", metal:"🔩 金属・レアメタル", kanri:"📋 こんなに管理しているよ", L_tenken:"🎓 点検ラクラクの使い方", L_hiki:"🎓 引取先管理の使い方", L_safety:"🎓 安全のきまり", L_manifest:"🎓 マニフェストのしくみ", L_mkaki:"🎓 マニフェストの書き方", L_manual:"🎓 環境手順書", L_dispose:"🎓 廃棄物の処分先", L_dis:"🎓 災害のときの動き方", L_words:"🎓 社内用語集", flow:"♻️ 資源のゆくえ", equip:"🚛 車両と設備", permit:"📜 許可・資格・表彰", hello:"👋 こんにちは", tour:"🚶 社内案内（3D）", env:"🌱 環境・安全への取り組み", town:"🤝 地域とともに", end:"📞 おわりに" };
 const SG_ALL = ["hello","strength","kikai","metal","flow","tour","equip","permit","kanri","env","town","end"];
 const EMG_DEF = [["緊-01","油漏れ対策管理手順書"],["緊-02","飛散・落下対策管理手順書"],["緊-03","自然災害・地震対策手順書"],["緊-04","自然災害・風水害対策手順書"],["緊-05","災害・火災対策手順書"],["緊-07","緊急時連絡体制の手順書"],["緊-08","気象変動の手順書"]];
 const emgIcon = n => /油/.test(n) ? "🛢" : /飛散|落下/.test(n) ? "🪨" : /地震/.test(n) ? "🌏" : /風水|水害|大雨|台風/.test(n) ? "🌊" : /火災|火事/.test(n) ? "🔥" : /感染/.test(n) ? "😷" : /連絡/.test(n) ? "📞" : /気象|気候|熱/.test(n) ? "🌡" : /電池/.test(n) ? "🔋" : "📘";
@@ -3407,7 +3407,7 @@ function sgLive(D, F, X){ const L = {}, ymd = sgYmd(), pf = D.pf || {}; X = X ||
 async function sgScenes(ch){ const [D, X] = await Promise.all([isoLoad(), ch === "hello" ? sgLiveLoad() : null]), F = sgFacts(D), pf = D.pf, intro = $("trIntro").querySelector("img").src, S = [];
   if (/^L_/.test(ch)) return sgKeys(ch, lesScenes(ch, D));
   { const X = sgScenesX(ch, D, F); if (X) return sgKeys(ch, X); }
-  if (ch === "equip") D.ph = await isoPh();
+  if (ch === "equip" || ch === "hello" || ch === "flow" || ch === "metal") D.ph = await isoPh();
   if (ch === "hello"){
     const LV = sgLive(D, F, X);
     S.push({ say:"ここが株式会社関根商店です。これから、会社をご案内します。", html:`<div class="sghero2"><img src="${intro}" alt="関根商店の外観" style="object-position:50% 22%;"><div><small>ようこそ</small><b>株式会社 関根商店</b><span>社内案内</span></div></div>` });
@@ -3441,7 +3441,7 @@ async function sgScenes(ch){ const [D, X] = await Promise.all([isoLoad(), ch ===
         Object.keys(G).forEach(b => E.push({ n:b, k:G[b].ids.size, u:"台", s:"", t:G[b].t }));
         E.push({ n:"リフマグ", k:2, u:"基", s:"天井クレーン", t:SGI.m2 });   /* マグネット2基（写真は案内に入っているもの） */
         t.push(`構内には、${E.map(x => `${x.n}が${x.k}${x.u}`).join("、")}があります。`);
-        S.push({ key:"hl:equip", say:t.join(""), html:sgCard("🚛 車両・倉庫・設備", `<div class="sgnums">${c.join("")}</div><div class="sgph" style="margin-top:12px;">${E.map((x, n) => `<figure style="animation-delay:${n*.1}s">${x.t ? `<img src="${x.t}" alt="">` : `<div class="noimg">⚙️</div>`}<figcaption>${esc(x.n)}　${x.k}${x.u}${x.s ? `<small>${esc(x.s)}</small>` : ""}</figcaption></figure>`).join("")}</div>${foot}`) }); }
+        S.push({ key:"hl:equip", say:t.join(""), html:sgCard("🚛 車両・倉庫・設備", `<div class="sgnums">${c.join("")}${E.map((x, n) => sgN(/リフマグ/.test(x.n) ? "🧲" : /ブリケット/.test(x.n) ? "🧱" : /被覆|剥/.test(x.n) ? "✂️" : "🗜", esc(x.n), x.k, x.u, "", dl(c) + (n + 1)*.08)).join("")}</div>${foot}`) }); }
       { const T0 = i => { try { return (tourOv(i) || {}).t || TOUR[i].t; } catch(e){ return TOUR[i].t; } };   /* 版8.3：社内3Dへの入口。場内のつくりを順に紹介 */
         S.push({ key:"hl:site", say:"ここから、場内のつくりをご案内します。国道の出入口から入り、トラックスケールで計量して、事務所で受付をします。そのあと、スクラップヤードで荷おろしと選別を行います。中間処理や保管は、決められた場所で行います。出荷は、北の出入口から行います。3Dの画面で、実際に歩いて見ることもできます。",
           html:sgCard("🗺 場内のつくり", `<div class="sgtl" style="max-height:none;">${TOUR.map((x, i) => `<div style="animation:sgIn .4s ${Math.min(i, 12)*.06}s ease-out both"><b style="width:2.2em;">${i + 1}</b><span>${esc(T0(i))}</span></div>`).join("")}</div>`), btns:[["site3d","🚶 3Dで社内を歩いて見る"]] }); }
@@ -3461,8 +3461,10 @@ async function sgScenes(ch){ const [D, X] = await Promise.all([isoLoad(), ch ===
   const fyN = f => String(f || "").split("-")[0] + "年度";
   if (ch === "flow"){
     const st = [["🚛","運びこむ","お客さんの所から集めてくる"],["⚖️","計量","トラックスケールで重さを量る"],["🔎","選別","種類ごとに分ける"],["🗜","圧縮・ブリケット化","小さく、固くまとめる"],["🏭","出荷","資源として次の工場へ"]];
-    S.push({ key:"fl:1", say:"関根商店に運ばれてきた物が、どうなるか見てみよう！", html:sgCard("♻️ 資源のゆくえ", `<div class="sgflow">${st.map((x, i) => `<div style="animation-delay:${i*.25}s"><span>${x[0]}</span><b>${x[1]}</b><small>${x[2]}</small></div>${i < st.length - 1 ? `<i style="animation-delay:${i*.25 + .12}s">➜</i>` : ""}`).join("")}</div>`) });
-    S.push({ say:"金属の切り粉は、ぎゅっと固めてブリケットにするよ。鋳物の原料として、もう一度使われるんだ。", html:sgCard("🔩 切り粉がもう一度、資源に", `<div class="sgflow"><div><span>🌀</span><b>切り粉（センダライ粉）</b><small>工場で出る金属のけずりくず</small></div><i>➜</i><div style="animation-delay:.3s"><span>🧱</span><b>ブリケット</b><small>ぎゅっと固める</small></div><i style="animation-delay:.4s">➜</i><div style="animation-delay:.6s"><span>🏭</span><b>鋳物の原料</b><small>もう一度、金属製品に</small></div></div>`) });
+    S.push({ key:"fl:1", say:"関根商店に運ばれてきた物が、どのように処理されるかをご紹介します。", html:sgCard("♻️ 資源のゆくえ", `<div class="sgflow">${st.map((x, i) => `<div style="animation-delay:${i*.25}s"><span>${x[0]}</span><b>${x[1]}</b><small>${x[2]}</small></div>${i < st.length - 1 ? `<i style="animation-delay:${i*.25 + .12}s">➜</i>` : ""}`).join("")}</div>`) });
+    { const kp = (D.ph || []).filter(p => /ブリケット|鉄屑|切り粉|切粉|ダライ/.test(Object.keys(p).filter(k => !/thumb|url|data|id$/i.test(k) && typeof p[k] === "string").map(k => p[k]).join(" "))).filter(p => p.thumb).slice(0, 4);   /* 版8.7：図のかわりに、ISO管理の写真を使う */
+      const cap = p => String(p.title || p.name || p.caption || p.memo || p.targetName || "").trim();
+      S.push({ say:"金属の切り粉は、圧縮して固め、ブリケットにします。ブリケットは、鋳物の原料として、再び使われます。", html:sgCard("🔩 切り粉がもう一度、資源に", kp.length ? sgGal(kp.map(p => [p.thumb, esc(cap(p))])) + `<div class="sgok">切り粉（センダライ粉）➜ ブリケット ➜ 鋳物の原料</div>` : `<div class="sgflow"><div><span>🌀</span><b>切り粉（センダライ粉）</b><small>工場で出る金属のけずりくず</small></div><i>➜</i><div style="animation-delay:.3s"><span>🧱</span><b>ブリケット</b><small>圧縮して固める</small></div><i style="animation-delay:.4s">➜</i><div style="animation-delay:.6s"><span>🏭</span><b>鋳物の原料</b><small>もう一度、金属製品に</small></div></div>`) }); }
     const pv = D.pm.filter(v => v.biz === "mid" || !v.biz).sort((a, b) => String(b.startDate || "").localeCompare(String(a.startDate || "")) || (b.createdMs || 0) - (a.createdMs || 0));
     const pc = pv.find(v => !v.startDate || v.startDate <= sgYmd()) || pv[pv.length - 1], fc = ((pc && pc.facilities) || []).filter(x => x.type || x.capacity);
     { const ys = [...new Set(D.vol.flatMap(i => Object.keys(i.y || {}).filter(y => i.y[y] != null && i.y[y] !== "")))].sort(), ly = ys[ys.length - 1];
@@ -3470,77 +3472,73 @@ async function sgScenes(ch){ const [D, X] = await Promise.all([isoLoad(), ch ===
         const us = [...new Set(L.map(x => x.u))], same = us.length === 1, tot = L.reduce((a, x) => a + x.v, 0), mx = Math.max(...L.map(x => x.v)) || 1;
         const top = L.slice(0, 8), tr5 = same ? ys.slice(-5).map(y => ({ y, v:D.vol.filter(i => i.cat === c && (i.unit || "") === us[0]).reduce((a, i) => a + (+(i.y || {})[y] || 0), 0) })).filter(x => x.v) : [];
         const tmx = Math.max(1, ...tr5.map(x => x.v));
-        S.push({ say: same ? `${ly}年度は、${c}を合わせて${sgNum(tot, 0)}${us[0].replace("㎏", "キロ").replace("kg", "キロ").replace("ｔ", "トン").replace("t", "トン")}あつかったよ。いちばん多いのは${L[0].n}だよ。` : `${ly}年度に、いちばん多くあつかった${c}は${L[0].n}だよ。`,
+        S.push({ say: same ? `${ly}年度は、${c}を合わせて${sgNum(tot, 0)}${us[0].replace("㎏", "キロ").replace("kg", "キロ").replace("ｔ", "トン").replace("t", "トン")}取り扱いました。いちばん多いのは${L[0].n}です。` : `${ly}年度に、いちばん多く取り扱った${c}は${L[0].n}です。`,
           html:sgCard(`${c === "産廃" ? "🗑" : "🔩"} ${c}の取扱量（${ly}年度）`, `<div class="sgvol">${top.map((x, i) => `<div><span>${esc(x.n)}</span><i style="width:${Math.max(3, x.v / mx * 100)}%;animation-delay:${i*.08}s"></i><b>${sgNum(x.v, 1)} ${esc(x.u)}</b></div>`).join("")}</div>${tr5.length > 1 ? `<div style="margin-top:10px;font-weight:800;">合計の移り変わり（${esc(us[0])}）</div><div class="sgbars">${tr5.map(r => `<div><i style="height:${Math.round(Math.max(4, r.v / tmx * 90))}px;background:linear-gradient(#0369a1,#38bdf8)"></i><b>${sgNum(r.v, 0)}</b><span>${r.y}年度</span></div>`).join("")}</div>` : ""}`), btns:[["vol","📊 取扱量の表を見る"]] }); }); }
-    S.push({ key:"fl:mid", say:"関根商店の中間処理は、廃プラスチックの圧縮梱包だけ。ぎゅっと小さく固めて、運びやすくしてからリサイクルにまわすよ。",
+    S.push({ key:"fl:mid", say:"関根商店の中間処理は、廃プラスチックの圧縮梱包です。小さく固めて、運びやすくしてから、リサイクルに回します。",
       html:sgCard("⚙️ 中間処理は「廃プラスチックの圧縮梱包」", sgTiles([["🗜","廃プラスチック類の圧縮梱包","特別管理産業廃棄物は除く"],["📜","産業廃棄物処分業の許可","長野県"]]) + (fc.length ? `<div class="sgnums" style="margin-top:10px;">${fc.map((x, i) => sgN("⚙️", esc(x.type || "処理施設"), x.capacity ? esc(x.capacity) : "", "", "処理能力（許可の内容より）", i*.1)).join("")}</div>` : "")) });
-    { const cm = D.cm[0] || {}; S.push({ key:"fl:comp", say:`ここが圧縮梱包機${cm.maker || cm.type ? "" : "、オルワックの9020"}。廃プラスチック置き場にあって、音の大きさを毎月測って、昼は70デシベル以下の決まりを守っているよ。すぐそばには、消火器の13番と14番があるんだ。`,
+    { const cm = D.cm[0] || {}; S.push({ key:"fl:comp", say:`ここが圧縮梱包機${cm.maker || cm.type ? "" : "、オルワックの9020"}。廃プラスチック置き場にあります。騒音を毎月測定し、昼は70デシベル以下の基準を守っています。すぐそばには、消火器の13番と14番があります。`,
       html:sgCard("🗜 圧縮梱包機（消火器No.13・14の所）", sgTiles([["🏷", esc(cm.name || "圧縮梱包機"), esc([cm.maker || "ORWAK", cm.type || "9020"].filter(Boolean).join("・"))],["🔊","騒音チェック 月1回","昼70dB・朝夕60dB・夜55dB（第3種区域）"],["📈","振動チェック 5年に1回",""],["🧯","そばに消火器 No.13・No.14","廃プラ置き場は中性強化液の消火器"]]) + sgCompMap()), btns:[["ext","🧯 消火器の置き場図"],["pdf:12","📄 騒音チェックの手順書"]] }); }
   }
   if (ch === "equip"){
-    const byM = {}; D.vs.forEach(v => { const k = String(v.model || "その他").trim() || "その他"; (byM[k] = byM[k] || []).push(v); });
-    let ms = Object.keys(byM).sort((a, b) => byM[b].length - byM[a].length), hp = false;
-    if (!ms.length){ hp = true; [["キャブオーバー",29],["塵芥車",4],["着脱装置付コンテナ専用車",1],["普通車",1],["軽自動車",1]].forEach(([k, n]) => byM[k] = { length:n }); ms = Object.keys(byM); }
-    const tot = ms.reduce((a, k) => a + byM[k].length, 0), main = x => (D.ph.filter(p => p.targetId === x).sort((a, b) => (b.isMain ? 1 : 0) - (a.isMain ? 1 : 0))[0] || {}).thumb;
-    const vph = D.vs.map(v => ({ n:String(v.nickname || v.number || ""), t:main(v.id) })).filter(x => x.t).slice(0, 8);
-    S.push({ say:`トラックや車は、全部で${tot}台あります。いちばん多いのは${ms[0]}です。`, html:sgCard(`🚛 車両 ${tot}台${hp ? "（ホームページより）" : ""}`, `<div class="sgnums">${ms.slice(0,6).map((k, i) => sgN("🚛", esc(k), byM[k].length, "台", "", i*.08)).join("")}</div>${vph.length ? `<div class="sgph">${vph.map(x => `<figure><img src="${x.t}" alt=""><figcaption>${esc(x.n)}</figcaption></figure>`).join("")}</div>` : ""}`), btns: D.vs.length ? [["veh","🚛 車両の一覧"]] : null });
-    /* 版7.7：車種ごとのページ（台数・最大積載量・大きさ）。マスタ管理の車両から自動で出す。写真・用途の文は入れていない */
-    if (!hp) ms.forEach(k => { const L = byM[k], nu = v => +String(v || "").replace(/[^\d.]/g, "") || 0, fm = (a, d) => sgNum(a, d == null ? 0 : d), rg = (a, d, u) => !a.length ? "" : Math.min(...a) === Math.max(...a) ? fm(a[0], d) + u : fm(Math.min(...a), d) + "〜" + fm(Math.max(...a), d) + u;
-      const ld = L.map(v => nu(v.maxLoad)).filter(Boolean), le = L.map(v => nu(v.lengthCm) / 100).filter(Boolean), wi = L.map(v => nu(v.widthCm) / 100).filter(Boolean), he = L.map(v => nu(v.heightCm) / 100).filter(Boolean);
-      if (!ld.length && !le.length && !wi.length && !he.length) return;   /* 積載量も大きさも入っていない車種は、ページを作らない */
-      const c = [sgN("🚛", "台数", L.length, "台")], t = [`${k}は、${L.length}台あります。`], dl = () => c.length * .08;
-      if (ld.length){ c.push(sgN("⚖️", "最大積載量", fm(Math.max(...ld)), "kg", Math.min(...ld) === Math.max(...ld) ? "" : rg(ld, 0, "kg"), dl())); t.push(`最大積載量は、${Math.min(...ld) === Math.max(...ld) ? fm(ld[0]) + "キロ" : fm(Math.min(...ld)) + "キロから" + fm(Math.max(...ld)) + "キロ"}です。`); }
-      if (le.length){ c.push(sgN("📏", "長さ", fm(Math.max(...le), 1), "m", Math.min(...le) === Math.max(...le) ? "" : rg(le, 1, "m"), dl())); t.push(`長さは、${Math.min(...le) === Math.max(...le) ? fm(le[0], 1) + "メートル" : fm(Math.min(...le), 1) + "メートルから" + fm(Math.max(...le), 1) + "メートル"}です。`); }
-      if (wi.length) c.push(sgN("↔️", "幅", fm(Math.max(...wi), 1), "m", Math.min(...wi) === Math.max(...wi) ? "" : rg(wi, 1, "m"), dl()));
-      if (he.length) c.push(sgN("↕️", "高さ", fm(Math.max(...he), 1), "m", Math.min(...he) === Math.max(...he) ? "" : rg(he, 1, "m"), dl()));
-      const rows = L.slice().sort((a, b) => nu(b.maxLoad) - nu(a.maxLoad)).slice(0, 10), size = v => nu(v.lengthCm) ? [v.lengthCm, v.widthCm, v.heightCm].filter(x => nu(x)).map(x => fm(nu(x) / 100, 1)).join("×") + " m" : "";
-      const tbl = `<table class="sgtbl"><tr><th>車</th><th>最大積載量</th><th>大きさ（長さ×幅×高さ）</th></tr>${rows.map(v => `<tr><td><b>${esc(v.nickname || v.number || "")}</b></td><td class="n">${nu(v.maxLoad) ? fm(nu(v.maxLoad)) + " kg" : ""}</td><td>${esc(size(v))}</td></tr>`).join("")}</table>${L.length > rows.length ? `<div style="font-size:12px;color:#64748b;margin-top:6px;">ほか ${L.length - rows.length}台（積載量の大きい順に ${rows.length}台を表示）</div>` : ""}`;
-      const dsc = (VDESC.find(x => x[0].test(k)) || [])[1] || "", vp = L.map(v => ({ n:String(v.nickname || v.number || ""), t:main(v.id) })).filter(x => x.t).slice(0, 6);
-      S.push({ key:"eq:veh:" + k, say:t.join("") + dsc, html:sgCard(`🚛 ${esc(k)}`, `<div class="sgnums">${c.join("")}</div>${dsc ? `<div class="sgok" style="margin-top:10px;">${esc(dsc)}</div>` : ""}${vp.length ? `<div class="sgph">${vp.map(x => `<figure><img src="${x.t}" alt=""><figcaption>${esc(x.n)}</figcaption></figure>`).join("")}</div>` : ""}<div style="margin-top:10px;">${tbl}</div>`), btns:[["veh","🚛 車両の一覧"]] }); });
-    if (!hp && D.vs.length){   /* 版8.3：全車両の写真を、12台ずつ */
-      const mk = v => String(v.model || "その他").trim() || "その他", od = Object.fromEntries(ms.map((k, i) => [k, i])), nm = v => String(v.nickname || v.number || ""), PG = 12,
-        AV = D.vs.slice().sort((a, b) => ((od[mk(a)] || 0) - (od[mk(b)] || 0)) || nm(a).localeCompare(nm(b), "ja", { numeric:true })), np = Math.ceil(AV.length / PG);
+    /* 版8.7：車は「どんな仕事に使うか」で紹介する（大きさや積載量は載せない）。軽自動車は紹介しない */
+    const mk = v => String(v.model || "その他").trim() || "その他", nm = v => String(v.nickname || v.number || "");
+    const USE = [
+      { k:"kei", ic:"🚙", t:"軽自動車", re:/軽自動車|軽貨物|軽トラ/, skip:true },
+      { k:"hiab", ic:"✋", t:"ヒアブ（つかむクレーン付き）", re:/ヒアブ|HIAB/i, d:"つかんだり、つぶしたりと、手のような動きができるクレーンを備えたトラックです。スクラップや廃材をつかんで積み込むときや、大きな物をつぶして小さくするときに使います。", w:[["✋","つかむ","手のように、荷をつかんで持ち上げる"],["🗜","つぶす","大きな物を、つぶして小さくする"],["🔩","スクラップ・廃材の積み込み","つかんで、荷台へ積む"]], always:true },
+      { k:"self", ic:"🚜", t:"セルフローダー", re:/セルフ/, d:"荷台が斜めに下がり、機械や車を、そのまま積み込めるトラックです。自走できない機械や、故障した車を運ぶときに使います。", w:[["🚜","機械や車を、そのまま積む","荷台が斜めに下がり、自分で乗せられる"],["🛠","故障した車・機械の運搬",""]] },
+      { k:"unic", ic:"🏗", t:"ユニック（クレーン付きトラック）", re:/ユニック|UNIC|クレーン/i, d:"荷台にクレーンを備えたトラックです。重い機械や資材を、クレーンで持ち上げて、積み降ろしするときに使います。機械の移動や、据え付けの作業を行います。", w:[["🏗","クレーンで積み降ろし","重い機械や資材を、持ち上げて載せる・降ろす"],["🔧","機械の移動・据え付け","工場の機械を、運び出し、運び入れる"]], always:true },
+      { k:"dump", ic:"⛰", t:"ダンプ", re:/ダンプ/, d:"荷台を傾けて、積んだ物を、一度に降ろせるトラックです。土砂や、がれきなどを運ぶときに使います。", w:[["⛰","土砂・がれきの運搬","荷台を傾けて、一度に降ろす"]] },
+      { k:"pack", ic:"🗑", t:"パッカー車（塵芥車）", re:/パッカー|塵芥/, d:"廃棄物を押し込みながら積む、収集用のトラックです。多くの量を、まとめて運ぶことができます。", w:[["🗑","廃棄物の収集","押し込んで、たくさん積む"]] },
+      { k:"cont", ic:"📦", t:"コンテナ専用車（着脱装置付）", re:/コンテナ|着脱/, d:"荷台のコンテナを、車から切り離して、積み降ろしできるトラックです。現場にコンテナを置き、いっぱいになったら、入れ替えて運びます。", w:[["📦","コンテナの入れ替え","現場に置いて、いっぱいになったら交換する"]] },
+      { k:"std", ic:"🚛", t:"一般のトラック", re:/./, d:"荷台に、スクラップや資材、機械などを積んで運ぶ、基本のトラックです。運ぶ物や、行き先に合わせて、使い分けています。", w:[["📦","荷物の運搬","スクラップ・資材・機械などを、荷台に積んで運ぶ"]] }];
+    const useOf = v => { const tx = ["nickname", "model", "katashiki", "name", "kind"].map(k => typeof v[k] === "string" ? v[k] : "").join(" "); return USE.find(u => u.re.test(tx)) || USE[USE.length - 1]; };
+    const G = {}; D.vs.forEach(v => { const u = useOf(v); (G[u.k] = G[u.k] || []).push(v); });
+    const hp = !D.vs.length, tot = hp ? 36 : D.vs.length, main = x => (D.ph.filter(p => p.targetId === x).sort((a, b) => (b.isMain ? 1 : 0) - (a.isMain ? 1 : 0))[0] || {}).thumb;
+    const shown = USE.filter(u => !u.skip && ((G[u.k] || []).length || u.always));
+    const vph = D.vs.filter(v => !useOf(v).skip).map(v => ({ n:nm(v), t:main(v.id) })).filter(x => x.t).slice(0, 8);
+    S.push({ say:`トラックや車は、全部で${tot}台あります。` + (hp ? "" : `仕事の内容に合わせて、${shown.filter(u => (G[u.k] || []).length).map(u => u.t.replace(/（.*）/, "")).join("、")}などを、使い分けています。`), html:sgCard(`🚛 車両 ${tot}台${hp ? "（ホームページより）" : ""}`, (hp ? "" : `<div class="sgnums">${shown.filter(u => (G[u.k] || []).length).slice(0, 6).map((u, i) => sgN(u.ic, esc(u.t.replace(/（.*）/, "")), (G[u.k] || []).length, "台", "", i*.08)).join("")}</div>`) + (vph.length ? `<div class="sgph">${vph.map(x => `<figure><img src="${x.t}" alt=""><figcaption>${esc(x.n)}</figcaption></figure>`).join("")}</div>` : "")), btns: D.vs.length ? [["veh","🚛 車両の一覧"]] : null });
+    if (!hp) shown.forEach(u => { const L = G[u.k] || [], vp = L.map(v => ({ n:nm(v), t:main(v.id) })).filter(x => x.t).slice(0, 6);
+      S.push({ key:"eq:use:" + u.k, say:(L.length ? `${u.t.replace(/（.*）/, "")}は、${L.length}台あります。` : "") + u.d, html:sgCard(`${u.ic} ${esc(u.t)}`, `<div class="sgok">${esc(u.d)}</div><div style="margin-top:10px;">${sgTiles(u.w)}</div>${L.length ? `<div class="sgnums" style="margin-top:10px;">${sgN("🚛", "台数", L.length, "台")}</div>` : ""}${vp.length ? `<div class="sgph">${vp.map(x => `<figure><img src="${x.t}" alt=""><figcaption>${esc(x.n)}</figcaption></figure>`).join("")}</div>` : ""}`), btns:[["veh","🚛 車両の一覧"]] }); });
+    if (!hp){   /* 全車両の写真を、12台ずつ（仕事の種類の順） */
+      const od = Object.fromEntries(USE.map((u, i) => [u.k, i])), PG = 12, AV = D.vs.slice().sort((a, b) => (od[useOf(a).k] - od[useOf(b).k]) || nm(a).localeCompare(nm(b), "ja", { numeric:true })), np = Math.ceil(AV.length / PG);
       for (let i = 0; i < np; i++){ const part = AV.slice(i * PG, i * PG + PG);
         S.push({ key:"eq:all:" + i, say:i === 0 ? `ここからは、車両を一台ずつ、写真でご紹介します。全部で${AV.length}台です。` : "続いて、車両のご紹介です。",
-          html:sgCard(`🚛 車両のご紹介（${i + 1}／${np}）`, `<div class="sgph">${part.map((v, n) => { const t = main(v.id), l = +String(v.maxLoad || "").replace(/[^\d.]/g, "") || 0; return `<figure style="animation-delay:${n*.05}s">${t ? `<img src="${t}" alt="">` : `<div class="noimg">🚛</div>`}<figcaption>${esc(nm(v))}<small>${esc(mk(v))}${l ? "・最大 " + sgNum(l, 0) + "kg" : ""}</small></figcaption></figure>`; }).join("")}</div>`), btns:[["veh","🚛 車両の一覧"]] }); } }
-    { const ld = v => +String(v.maxLoad || "").replace(/[^\d.]/g, "") || 0, big = D.vs.filter(ld).sort((a, b) => ld(b) - ld(a)).slice(0, 6);
-      if (big.length) S.push({ say:`いちばん多く積めるトラックは${big[0].nickname || big[0].number || ""}で、${sgNum(ld(big[0]), 0)}キロまで積めます。`, html:sgCard("💪 力持ちのトラック", `<div class="sgph">${big.map((v, i) => { const t = main(v.id); return `<figure style="animation-delay:${i*.1}s">${t ? `<img src="${t}" alt="">` : `<div class="noimg">🚛</div>`}<figcaption>${esc(v.nickname || v.number || "")}<small>${esc(v.model || "")}・最大 ${sgNum(ld(v), 0)}kg</small></figcaption></figure>`; }).join("")}</div>`), btns:[["veh","🚛 車両の一覧"]] }); }
+          html:sgCard(`🚛 車両のご紹介（${i + 1}／${np}）`, `<div class="sgph">${part.map((v, n) => { const t = main(v.id); return `<figure style="animation-delay:${n*.05}s">${t ? `<img src="${t}" alt="">` : `<div class="noimg">🚛</div>`}<figcaption>${esc(nm(v))}<small>${esc(useOf(v).t.replace(/（.*）/, ""))}</small></figcaption></figure>`; }).join("")}</div>`), btns:[["veh","🚛 車両の一覧"]] }); } }
     const eq = []; D.cm.forEach(c => eq.push({ n:c.name, s:[c.type, c.maker].filter(Boolean).join("・"), t:main("e:" + c.name) }));
     const seen = new Set(eq.map(e => "e:" + e.n)); D.ph.filter(p => p.kind === "equip" && !seen.has(p.targetId)).forEach(p => { if (!/エアコン|空調|冷蔵|冷凍/.test(p.targetName || "")){ seen.add(p.targetId); eq.push({ n:p.targetName, s:"", t:main(p.targetId) }); } });
     if (!eq.length) [["🗜","圧縮梱包機"],["🧱","ブリケットマシン"],["⚖️","トラックスケール"],["🚜","フォークリフト"]].forEach(([i, n]) => eq.push({ n, i }));
     /* 版8.2：設備の図は「こんにちは」の章の「車両・倉庫・設備」に集約（ダブり解消） */
   }
   if (ch === "permit"){
-    const P = [["🚛","産業廃棄物 収集運搬業","長野県・新潟県・群馬県・山梨県・埼玉県","工場などから出た産業廃棄物を集めて運べる"],["⚙️","産業廃棄物 処分業","長野県","廃プラスチック類を圧縮梱包できる（中間処理）"],["🏘","一般廃棄物 収集運搬業","長野市・中野市・千曲市・坂城町・上田市・東御市","市や町のごみも集めて運べる"],["🏗","一般建設業（とび・土工工事業）","","機械の据付・アンカー工事などができる"],["⚖️","計量証明事業","長野県","トラックスケールで、正しい重さを証明できる"],["📦","古物商","長野県公安委員会","中古の機械を買い取って売れる"],["🔩","特定金属くず買受業・金属くず商","","金属を買い取れる"]];
-    S.push({ key:"pm:1", say:"関根商店は、こんなにたくさんの許可をもらってお仕事しているよ。許可があるから、集める・運ぶ・処分する・買い取る、ぜんぶできるんだ。",
+    const P = [["🚛","産業廃棄物 収集運搬業","長野県・新潟県・群馬県・山梨県・埼玉県","工場などから出た産業廃棄物を集めて運べる"],["⚙️","産業廃棄物 処分業","長野県","廃プラスチック類を圧縮梱包できる（中間処理）"],["🏘","一般廃棄物 収集運搬業","長野市・中野市・千曲市・坂城町・上田市・東御市","市や町の一般廃棄物も集めて運べる"],["🏗","一般建設業（とび・土工工事業）","","機械の据付・アンカー工事などができる"],["⚖️","計量証明事業","長野県","トラックスケールで、正しい重さを証明できる"],["📦","古物商","長野県公安委員会","中古の機械を買い取って売れる"],["🔩","特定金属くず買受業・金属くず商","","金属を買い取れる"]];
+    S.push({ key:"pm:1", say:"関根商店は、多くの許可を取得して事業を行っています。許可を受けているため、集める、運ぶ、処分する、買い取る、までを一貫して行えます。",
       html:sgCard("📜 許可・登録（ホームページより）", `<div class="sgcat">${P.map((x, i) => `<div style="animation-delay:${i*.08}s"><b>${x[0]} ${x[1]}</b><span>${x[2] ? "📍 " + x[2] + "<br>" : ""}👉 ${x[3]}</span></div>`).join("")}</div>`), btns: D.pm.length ? [["permit","📜 許可の内容をくわしく"]] : null });
     { const C = D.pm.filter(v => v.biz === "collect").sort((a, b) => String(b.startDate || "").localeCompare(String(a.startDate || "")))[0], cs = (C && C.collectScope) || [];
       const K = cs.length ? cs.map(x => [x.kind, !!x.store]) : [["金属くず",1],["燃え殻",1],["汚泥",1],["廃油",1],["廃プラスチック類",1],["紙くず",1],["木くず",1],["繊維くず",1],["ゴムくず",1],["ガラスくず",1],["コンクリートくず",1],["がれき類",0]];
-      S.push({ key:"pm:2", say:"収集運搬では、金属くず、廃プラスチック、紙くず、木くず、廃油など、たくさんの種類を運べるよ。いったん置いておく積替え保管もできるんだ。",
+      S.push({ key:"pm:2", say:"収集運搬では、金属くず、廃プラスチック、紙くず、木くず、廃油など、多くの種類を運ぶことができます。一時的に保管する、積替え保管も行えます。",
         html:sgCard("🚛 運べる産業廃棄物の種類", `<div class="sgkinds">${K.map((x, i) => `<span class="${x[1] ? "st" : ""}" style="animation-delay:${i*.05}s">${esc(x[0])}</span>`).join("")}</div><div class="sgcap">オレンジ＝積替え保管もできる　（特別管理産業廃棄物はのぞく・水銀使用製品などをふくむ品目あり）</div>`) }); }
-    S.push({ key:"pm:3", say:"トラックのドアを見てみて。産業廃棄物収集運搬車って書いてあって、許可番号ものっているんだよ。", html:sgPhoto(SGI.sf_door, "統一許可番号 005150号", "トラックのドアに表示", "産業廃棄物収集運搬車") });
+    S.push({ key:"pm:3", say:"トラックのドアには、「産業廃棄物収集運搬車」の表示と、許可番号を掲示しています。", html:sgPhoto(SGI.sf_door, "統一許可番号 005150号", "トラックのドアに表示", "産業廃棄物収集運搬車") });
     const nn = x => String(x || "").normalize("NFKC").replace(/[\s　]/g, ""), qs = e => Array.isArray(e.qualifications) ? e.qualifications : String(e.qualifications || "").split(/[、,・\n]/).map(x => x.trim()).filter(Boolean);
     const qBy = {}; D.emps.filter(e => e.name && qs(e).length).forEach(e => qBy[nn(e.name)] = qs(e));
     const act = D.ros.filter(r => r.name && !(r.leaveDate && r.leaveDate < sgYmd()) && (D.pf.employeesCountOfficers !== false || r.kind !== "役員")), base = act.length ? act : D.emps.filter(e => e.name);
     const hold = base.filter(r => qBy[nn(r.name)]);
     if (hold.length){ const cnt = {}; hold.forEach(r => qBy[nn(r.name)].forEach(q => { const k = String(typeof q === "object" ? (q.name || q.title || "") : q).trim(); if (k) cnt[k] = (cnt[k] || 0) + 1; }));
       const top = Object.keys(cnt).sort((a, b) => cnt[b] - cnt[a]).slice(0, 6);
-      S.push({ say:`資格を持っている人は、${base.length}人のうち${hold.length}人だよ。`, html:sgCard("🎓 資格を持つ人", `<div class="sgnums">${sgN("🎓","有資格者",hold.length,"名",`従業員 ${base.length}名中`)}${top.map((k, i) => sgN("🪪", esc(k), cnt[k], "名", "", (i+1)*.08)).join("")}</div>`) }); }
+      S.push({ say:`資格を持っている人は、${base.length}人のうち${hold.length}人です。`, html:sgCard("🎓 資格を持つ人", `<div class="sgnums">${sgN("🎓","有資格者",hold.length,"名",`従業員 ${base.length}名中`)}${top.map((k, i) => sgN("🪪", esc(k), cnt[k], "名", "", (i+1)*.08)).join("")}</div>`) }); }
     const aw = D.h.filter(x => /表彰|優良法人|認定|推進事業登録|宣言|感謝状/.test(x.text || ""));
-    if (aw.length) S.push({ say:"がんばりが認められて、表彰や認定ももらっているよ。" + aw.slice(-2).map(x => String(x.text || "").replace(/（[^）]*）|\([^)]*\)/g, "")).join("、") + "。", html:sgCard("🏆 表彰・認定", `<div class="sgtl">${aw.map((x, i) => `<div style="animation:sgIn .4s ${i*.1}s ease-out both"><b>${esc(x.date || "")}</b><span>🏆 ${esc(x.text || "")}</span></div>`).join("")}</div>`), btns:[["history","📜 沿革をぜんぶ見る"]] });
+    if (aw.length) S.push({ say:"日ごろの取り組みが認められ、表彰や認定をいただいています。" + aw.slice(-2).map(x => String(x.text || "").replace(/（[^）]*）|\([^)]*\)/g, "")).join("、") + "。", html:sgCard("🏆 表彰・認定", `<div class="sgtl">${aw.map((x, i) => `<div style="animation:sgIn .4s ${i*.1}s ease-out both"><b>${esc(x.date || "")}</b><span>🏆 ${esc(x.text || "")}</span></div>`).join("")}</div>`), btns:[["history","📜 沿革をぜんぶ見る"]] });
   }
   if (ch === "env"){
-    if (pf.policy){ const lines = String(pf.policy).split(/\r?\n/).map(x => x.trim()).filter(Boolean); S.push({ say:"関根商店は、環境のことをとても大切にしているよ。これが環境方針だよ。", html:sgCard("🌱 環境方針", `<div class="sgpol">${esc(lines.join("\n"))}</div>`) }); }
-    else S.push({ say:"関根商店は、資源のリサイクルで、環境を守っているよ。", html:sgCard("🌱 環境への取り組み", `<div class="sgbiz"><div><span>♻️</span>資源のリサイクル</div><div><span>🏅</span>ISO14001で環境を管理</div></div>`) });
-    { const rows = [["規格", pf.standard || "ISO14001:2015 / JIS Q 14001:2015"], ["はじめて取得", pf.certFirst || (F.isoY ? F.isoY + "年" : "")], ["認証機関", pf.certBody || ""], ["登録番号", pf.certNo || ""], ["適用範囲", pf.scope || ""], ["有効期限", pf.certExpiry || ""], ["環境手順書", D.man.length ? D.man.length + "冊（ふだんの作業・緊急時の対応）" : ""]].filter(r => r[1]);
-      S.push({ say:`ISO14001という、環境を守るための世界のルールで、会社を管理しているよ。${F.isoY ? `${F.isoY}年からずっと続けているんだ。` : ""}${D.man.length ? `作業の手順書も${D.man.length}冊あるよ。` : ""}`, html:sgCard("🏅 ISO14001（環境マネジメントシステム）", `<dl class="sgdl">${rows.map(r => `<dt>${r[0]}</dt><dd>${esc(r[1])}</dd>`).join("")}</dl>`) }); }
+    if (pf.policy){ const lines = String(pf.policy).split(/\r?\n/).map(x => x.trim()).filter(Boolean); S.push({ say:"関根商店は、環境の保全を重要な課題としています。こちらが、環境方針です。", html:sgCard("🌱 環境方針", `<div class="sgpol">${esc(lines.join("\n"))}</div>`) }); }
+    else S.push({ say:"関根商店は、資源のリサイクルを通じて、環境の保全に取り組んでいます。", html:sgCard("🌱 環境への取り組み", `<div class="sgbiz"><div><span>♻️</span>資源のリサイクル</div><div><span>🏅</span>ISO14001で環境を管理</div></div>`) });
+    /* 版8.7：ISO14001の紹介カード（規格・はじめて取得・環境手順書）は削除 */
     const nums = [sgN("🏅","ISO14001",pf.standard ? esc(String(pf.standard).replace(/^ISO\s*14001[:：]?/, "")) || "認証" : "認証","",F.isoY ? F.isoY + "年 取得" : "環境マネジメントシステム")];
     const fyL = y => `${y-1}年度`;   /* 進み具合の年(例 2025)は「2024-2025年度」＝2024年度 */
     if (F.bri != null){ nums.push(sgN("♻️",`ブリケット化率（${fyL(F.briY)}）`,sgNum(F.briLast),"%",`${F.briY-1}年8月〜${F.briY}年7月`,.1)); nums.push(sgN("📊","3年平均",sgNum(F.bri),"%",`${fyL(F.briY-2)}〜${fyL(F.briY)}` + (F.briT ? "・目標 " + F.briT + "%" : ""),.15)); }
     if (F.diesel != null) nums.push(sgN("⛽","軽油の使用量",sgNum(F.diesel),"%減","前の年の同じ時期とくらべて",.2));
     const bars = F.briRows ? `<div class="sgbars">${F.briRows.map(r => `<div><i style="height:${Math.round(Math.max(4, Math.min(100, r.v)) * 0.9)}px"></i><b>${sgNum(r.v)}%</b><span>${r.y-1}年度</span></div>`).join("")}</div>` : "";
-    S.push({ say: F.bri != null ? `金属の切り粉をぎゅっと固めるブリケット化。${F.briY-1}年度は${sgNum(F.briLast)}パーセント、3年の平均は${sgNum(F.bri)}パーセントだよ。` : "ISO14001で、環境のことをきちんと管理しているよ。", html:sgCard("🌏 環境の数字", `<div class="sgnums">${nums.join("")}</div>${bars}`) });
-    const gs = D.sg.filter(g => g.name); if (gs.length) S.push({ say:"SDGsの目標も決めて、取り組んでいるよ。", html:sgCard("🎯 SDGsの目標", `<div class="sgbiz">${gs.slice(0,6).map((g, i) => `<div style="animation-delay:${i*.1}s"><span>🎯</span>${esc(g.name)}${g.targetValue ? `<br><small>目標 ${esc(String(g.targetValue))}</small>` : ""}</div>`).join("")}</div>`) });
+    S.push({ say: F.bri != null ? `金属の切り粉を圧縮して固めるブリケット化についてです。${F.briY-1}年度は${sgNum(F.briLast)}パーセント、3年の平均は${sgNum(F.bri)}パーセントでした。` : "ISO14001に基づき、環境を適切に管理しています。", html:sgCard("🌏 環境の数字", `<div class="sgnums">${nums.join("")}</div>${bars}`) });
+    const gs = D.sg.filter(g => g.name); if (gs.length) S.push({ say:"SDGsの目標も定めて、取り組んでいます。", html:sgCard("🎯 SDGsの目標", `<div class="sgbiz">${gs.slice(0,6).map((g, i) => `<div style="animation-delay:${i*.1}s"><span>🎯</span>${esc(g.name)}${g.targetValue ? `<br><small>目標 ${esc(String(g.targetValue))}</small>` : ""}</div>`).join("")}</div>`) });
     { const yr = String(new Date().getFullYear()), wy = D.wt.filter(x => String(x.date || "").startsWith(yr)).length ? yr : String(new Date().getFullYear() - 1);
       const wl = D.wt.filter(x => String(x.date || "").startsWith(wy)), phs = wl.map(x => x.ph).filter(x => x != null && x !== "" && !isNaN(x)).map(Number);
       const nl = D.nc.filter(x => String(x.date || "").startsWith(wy)), dbs = nl.map(x => x.db).filter(x => x != null && x !== "" && !isNaN(x)).map(Number);
@@ -3548,29 +3546,29 @@ async function sgScenes(ch){ const [D, X] = await Promise.all([isoLoad(), ch ===
       const nums = []; if (phs.length) nums.push(sgN("💧",`排水の水質（${wy}年）`,sgNum(phs.reduce((a, b) => a + b, 0) / phs.length, 1),"pH",`検査 ${wl.length}回`));
       if (dbs.length) nums.push(sgN("🔊",`音の大きさ（${wy}年）`,sgNum(dbs.reduce((a, b) => a + b, 0) / dbs.length, 0),"dB",`測定 ${nl.length}回・平均`,.1));
       if (fl.length) nums.push(sgN("❄️","フロンの点検",fl.length,"回",`${fyN(F.fy)}・3か月に1回`,.2));
-      if (nums.length) S.push({ say:"排水の水質や音の大きさも、きちんと測って、まわりの環境を守っているよ。", html:sgCard("🏞 まわりの環境を守る", `<div class="sgnums">${nums.join("")}</div>`) }); }
+      if (nums.length) S.push({ say:"排水の水質や、騒音も定期的に測定し、周辺の環境を守っています。", html:sgCard("🏞 まわりの環境を守る", `<div class="sgnums">${nums.join("")}</div>`) }); }
     { const lit = x => +x.totalLiters || (x.vehicles || []).reduce((a, v) => a + (+v.liters || 0), 0), pfy = (+F.fy.split("-")[0] - 1) + "-" + F.fy.split("-")[0];
       let L = D.dr.filter(x => x.yearMonth && sgFy(x.yearMonth) === pfy).reduce((a, x) => a + lit(x), 0), T = L * 2.58 / 1000;
       if (pfy === "2024-2025" && L){ L = 155191.65; T = 416; }   /* 2024年度は提出済みの分析報告書の数字 */
-      if (L) S.push({ say:`${fyN(pfy)}は、軽油を${sgNum(Math.round(L / 1000) * 1000, 0)}リットル使って、CO2は約${sgNum(T, 0)}トンだったよ。${F.diesel != null ? `今年度は${sgNum(F.diesel)}パーセント減っているよ！` : "これから少しずつ減らしていくよ。"}`,
+      if (L) S.push({ say:`${fyN(pfy)}は、軽油を${sgNum(Math.round(L / 1000) * 1000, 0)}リットル使用し、CO2の排出量は約${sgNum(T, 0)}トンでした。${F.diesel != null ? `今年度は、${sgNum(F.diesel)}パーセント減っています。` : "今後も、少しずつ減らしていきます。"}`,
         html:sgCard("⛽ CO₂をへらす", `<div class="sgnums">${sgN("⛽",`軽油（${fyN(pfy)}）`,sgNum(L, 0),"L")}${sgN("🌫","CO₂",`約${sgNum(T, 0)}`,"トン",fyN(pfy),.1)}${F.diesel != null ? sgN("📉","今年度",sgNum(F.diesel),"%減","前の年の同じ時期とくらべて",.2) : ""}</div>`) }); }
-    S.push({ say:`安全第一！場内では保護帽をかぶるよ。` + (F.patrol || F.train ? `今年度は安全パトロールを${F.patrol}回、教育訓練を${F.train}回したよ。` : "安全パトロールや教育訓練もしているよ。"), html:sgCard("⛑ 安全への取り組み", `<div class="sgnums">${sgN("⛑","場内では","保護帽","","かならずかぶる")}${sgN("🦺","安全衛生パトロール",F.patrol,"回","今年度",.1)}${sgN("🎓","教育訓練",F.train,"回","今年度",.2)}${sgN("🧯","消火器",EXT4.length,"本","場所は消火器の置き場図",.3)}</div>`), btns:[["train","🎓 教育訓練"],["drill","🔥 防災・火災の訓練"],["patrol","🦺 安全パトロール"],["ext","🧯 消火器の置き場図"]] });
-    sgDisScenes(D).forEach(x => S.push(x));
+    S.push({ say:`安全第一です。場内では、保護帽を着用します。` + (F.patrol || F.train ? `今年度は、安全パトロールを${F.patrol}回、教育訓練を${F.train}回行いました。` : "安全パトロールや教育訓練も、行っています。"), html:sgCard("⛑ 安全への取り組み", `<div class="sgnums">${sgN("⛑","場内では","保護帽","","必ず着用する")}${sgN("🦺","安全衛生パトロール",F.patrol,"回","今年度",.1)}${sgN("🎓","教育訓練",F.train,"回","今年度",.2)}${sgN("🧯","消火器",EXT4.length,"本","場所は消火器の置き場図",.3)}</div>`), btns:[["train","🎓 教育訓練"],["drill","🔥 防災・火災の訓練"],["patrol","🦺 安全パトロール"],["ext","🧯 消火器の置き場図"]] });
+    sgDisScenes(D).filter(x => x.key === "ds:0").forEach(x => S.push(x));   /* 版8.7：会社案内は「災害への備え」の1ページだけ。個別の手順は社員研修で */
     { const T = D.tr.filter(x => x.kind === "test" || sgDrillRe.test(x.theme || "")).sort((a, b) => String(b.date).localeCompare(String(a.date)));
-      S.push({ say: T.length ? `もしもの時にあわてないように、訓練もしているよ。この前は「${String(T[0].theme || "").replace(/（[^）]*）/g, "")}」の訓練をしたよ。` : "もしもの時にあわてないように、毎年、緊急事態の訓練をしているよ。",
+      S.push({ say: T.length ? `非常時に落ち着いて行動できるよう、訓練も行っています。直近では、「${String(T[0].theme || "").replace(/（[^）]*）/g, "")}」の訓練を行いました。` : "非常時に落ち着いて行動できるよう、毎年、緊急事態の訓練を行っています。",
         html:sgCard("🔥 防災・火災の訓練", T.length ? `<div class="sgtl">${T.slice(0, 5).map((x, i) => `<div style="animation:sgIn .4s ${i*.1}s ease-out both"><b>${sgJa(x.date)}</b><span>${x.kind === "test" ? "🚨 定期テスト：" : "🎓 "}${esc(x.theme || "")}</span></div>`).join("")}</div>` : `<div class="sgbiz"><div><span>🚨</span>緊急事態の訓練（年1回）</div><div><span>🔋</span>リチウムイオン電池の発火</div><div><span>🌏</span>地震を想定した点検</div></div>`, ), btns:[["drill","🔥 訓練の記録をぜんぶ"],["train","🎓 教育訓練"]] }); }
-    S.push({ say:"もしも火事になったら…。ぼくが避難のしかたを見せるね！", html:sgCard("🔥 もしも火事になったら", `<div class="sgbiz"><div><span>📢</span>大きな声で知らせる</div><div><span>🧯</span>近くの消火器で初期消火</div><div><span>🏃</span>避難経路で大型駐車場（集合場所）へ</div><div><span>🙋</span>みんなそろったか点呼</div></div>`) });
+    S.push({ say:"火災が起きたときの、避難のしかたをご紹介します。", html:sgCard("🔥 もしも火事になったら", `<div class="sgbiz"><div><span>📢</span>大きな声で知らせる</div><div><span>🧯</span>近くの消火器で初期消火</div><div><span>🏃</span>避難経路で大型駐車場（集合場所）へ</div><div><span>🙋</span>全員がそろっているか点呼</div></div>`) });
     S.push({ evac:true });
-    S.push({ say:"みんな無事に大型駐車場に集まれたよ！点呼もばっちり。ふだんから訓練しているから、あわてないで動けるんだ。", html:sgCard("✅ 避難できたよ", `<div class="sgbiz"><div><span>🙋</span>点呼でみんな無事を確認</div><div style="animation-delay:.12s"><span>📞</span>緊急時連絡体制で知らせる</div><div style="animation-delay:.24s"><span>📝</span>訓練のあとは手順書を見直す</div></div>`), btns:[["drill","🔥 訓練の記録"]] });
+    S.push({ say:"全員が、大型駐車場に集合し、点呼を行います。ふだんから訓練を行っているため、落ち着いて行動できます。", html:sgCard("✅ 避難の完了", `<div class="sgbiz"><div><span>🙋</span>点呼で全員の無事を確認</div><div style="animation-delay:.12s"><span>📞</span>緊急時連絡体制で知らせる</div><div style="animation-delay:.24s"><span>📝</span>訓練のあとは手順書を見直す</div></div>`), btns:[["drill","🔥 訓練の記録"]] });
   }
   if (ch === "town"){
     const cnt = {}; F.actsFy.forEach(e => { const k = String(e.title || e.mark || "活動").trim(); cnt[k] = (cnt[k] || 0) + 1; });
     const ks = Object.keys(cnt).sort((a, b) => cnt[b] - cnt[a]);
-    S.push({ say: (F.actsFy.length ? `つぎは、地域のおはなし。地域のみなさんといっしょに、` : "つぎは、地域のおはなし。") + (F.actsFy.length ? `今年度は${F.actsFy.length}回、草刈りや美化活動をしたよ。` : "地域のみなさんといっしょに、草刈りや美化活動をしているよ。"),
-      html:sgCard("🤝 地域といっしょに", (ks.length ? `<div class="sgnums">${ks.slice(0,4).map((k, i) => sgN("🌿", esc(k), cnt[k], "回", "今年度", i*.1)).join("")}</div>` : "") + (F.acts.length ? `<div class="sgtl" style="margin-top:10px;">${F.acts.slice(0,6).map(e => `<div><b>${esc(e.date)}</b><span>${esc(e.title || e.mark || "")}</span></div>`).join("")}</div>` : `<div class="sgbiz"><div><span>🌿</span>しなの木通りの草刈り</div><div><span>🧹</span>上小環境美化活動</div></div>`)), btns: F.acts.length ? [["acts","🌿 活動の記録をぜんぶ"]] : null });
+    S.push({ say: (F.actsFy.length ? `続いて、地域との取り組みです。地域の皆様と一緒に、` : "続いて、地域との取り組みです。") + (F.actsFy.length ? `今年度は${F.actsFy.length}回、草刈りや美化活動を行いました。` : "地域の皆様と一緒に、草刈りや美化活動を行っています。"),
+      html:sgCard("🤝 地域とともに", (ks.length ? `<div class="sgnums">${ks.slice(0,4).map((k, i) => sgN("🌿", esc(k), cnt[k], "回", "今年度", i*.1)).join("")}</div>` : "") + (F.acts.length ? `<div class="sgtl" style="margin-top:10px;">${F.acts.slice(0,6).map(e => `<div><b>${esc(e.date)}</b><span>${esc(e.title || e.mark || "")}</span></div>`).join("")}</div>` : `<div class="sgbiz"><div><span>🌿</span>しなの木通りの草刈り</div><div><span>🧹</span>上小環境美化活動</div></div>`)), btns: F.acts.length ? [["acts","🌿 活動の記録をぜんぶ"]] : null });
   }
   if (ch === "end"){
-    S.push({ key:"end:1", say:"金属のこと、機械の移動のこと、こまったらまず関根商店へ。ご相談まってるよ！", html:sgCard("", `<div class="sgend"><div class="co">株式会社 関根商店</div><div>${SG_HP.addr}</div><div class="tel">☎ ${SG_HP.tel}</div><a href="${SG_HP.url}" target="_blank" rel="noopener">🌐 ホームページ ${SG_HP.url}</a></div>`) });
+    S.push({ key:"end:1", say:"金属のこと、機械の移動のことなど、お困りの際は、まず関根商店にご相談ください。", html:sgCard("", `<div class="sgend"><div class="co">株式会社 関根商店</div><div>${SG_HP.addr}</div><div class="tel">☎ ${SG_HP.tel}</div><a href="${SG_HP.url}" target="_blank" rel="noopener">🌐 ホームページ ${SG_HP.url}</a></div>`) });
   }
   return sgKeys(ch, S); }
 /* ===== 版6.0：新しい章（強み・機械作業・金属/レアメタル・管理）と新人さん研修・災害（手順書より） ===== */
@@ -3582,58 +3580,58 @@ const sgArrow = L => `<div class="sgflow">${L.map((x, i) => `<div style="animati
 /* 災害（環境手順書の緊急時対応より・感染症は入れない） */
 const DIS = [
   { k:"fire", i:"🔥", t:"火災", no:"緊-05", m:"災害・火災対策手順書",
-    say:"火事を見つけたら「火事だ！」と大声で知らせて、近くの消火器で消すよ。人の命がいちばん。燃えている建物には、ぜったいに入らないんだ。",
+    say:"火災を発見したら、大声で周囲に知らせ、近くの消火器で消火します。人命が最優先です。燃えている建物には、絶対に入りません。",
     pts:["「火事だ！」と大声で知らせ、近くの消火器で初期消火","人命が最優先。火の勢いに関係なく、燃えている建物には入らない","消えないときは消防署（119）へ。「こちらは関根商店です。上田市住吉316番地2、上田菅平インター入口の近くです」","見学の人がいるときは、場外の安全な場所へ避難してもらう","消防車が来たら道路で誘導し、消火のじゃまになる物はどける","消火器は、廃プラスチック置き場は中性強化液、ほかの置き場は粉末","消火訓練は1年に1回。消火器の期限を確かめて、切れた物はすぐ交換"] },
   { k:"quake", i:"🌏", t:"地震", no:"緊-03", m:"自然災害・地震対策手順書",
-    say:"大きくゆれたら、すぐに作業を止めて頭を守るよ。あわてて外に飛び出さない。運転中なら、ゆっくり左に寄せて止まるんだ。",
+    say:"大きな揺れを感じたら、すぐに作業を止めて、頭を守ります。あわてて外に飛び出してはいけません。運転中は、ゆっくり左に寄せて停車します。",
     pts:["強いゆれを感じたら、すぐ作業を止め、身近な物で頭を守る","室内では、あわてて外に飛び出さず、火の始末をして戸を開け、出口を確保","外では、ブロック塀・電柱・自動販売機からはなれる","運転中は、ゆるやかに減速して道路の左に寄せ、ハザードをつけて止まる","事務所が倒れるおそれがあるときは、大型駐車場に集まり対策本部を置く","ゆれがおさまったら、無線で安否を連絡（とどかない所は電話）","クレーンに取り残されたら、安全を確かめて縄ばしごで降りる。降りられなければ救助を待つ","地震のあとは、配線・キュービクル・屋外設備・非常用電源を確かめる。異常があれば専門業者へ","ふだんから荷物は高く積まない。ふたのない廃油は満タンになる前に出荷する"] },
   { k:"wind", i:"🌀", t:"台風・風水害", no:"緊-04", m:"自然災害・風水害対策手順書",
-    say:"台風のときは、むやみに外に出ないで、建物の中で待つよ。雷が近いときは、天井クレーンを止めて事務所で待つんだ。",
+    say:"台風のときは、むやみに外に出ず、建物の中で待機します。雷が近いときは、天井クレーンを止めて、事務所で待機します。",
     pts:["台風が近づいたら外に出ず、安全な建物の中で待つ（強風は吹き返すことがある）","飛んできた物で窓ガラスが割れることがあるので注意","ドアや窓は、強い風で急に開け閉めされるので、はさまれないよう注意","雷のおそれがあるときは、天井クレーンを止めて事務所で待つ","水につかったら、感電・漏電に注意","浸水しそうなら、機材を高い所へ。ひどいときは早めに安全な所へ避難","ふだんから排水溝・屋上ドレーンがつまらないよう点検","災害用伝言ダイヤル 171 で、家族や会社と安否を伝え合う","指定緊急避難場所：神科小学校・第五中学校・上野が丘公民館"] },
   { k:"weather", i:"🌡", t:"豪雨・強風・猛暑・大雪", no:"緊-08", m:"気象変動の手順書",
-    say:"気象庁の警報や注意報を毎日たしかめるよ。暑い日は水分と塩分をしっかりとって、雪の日はスピードを落とすんだ。",
-    pts:["毎日、気象庁の警報・注意報をたしかめる","豪雨：排水口・側溝・油水分離槽を点検。雨に弱い物から屋内へ。冠水しそうな所は立入禁止","強風：軽い物（プラ・紙・空ドラム）は屋内へ。屋外の物はワイヤー・ネットで固定。クレーン・高所作業は中止","猛暑：休けいを増やし、水分・塩分をとる。日なたの作業は短く交代。具合の悪い人はすぐ休ませる","大雪：屋根の雪の量を確認。チェーン・スタッドレスを確認。排水口のまわりから除雪。凍結時はフォークリフト・トラックの速度を落とす","警報のときは、環境管理責任者が作業してよいか決める。危ないときは作業中止を優先"] },
+    say:"気象庁の警報や注意報を、毎日確認します。暑い日は、水分と塩分を十分にとり、雪の日は、速度を落とします。",
+    pts:["毎日、気象庁の警報・注意報を確認する","豪雨：排水口・側溝・油水分離槽を点検。雨に弱い物から屋内へ。冠水しそうな所は立入禁止","強風：軽い物（プラ・紙・空ドラム）は屋内へ。屋外の物はワイヤー・ネットで固定。クレーン・高所作業は中止","猛暑：休けいを増やし、水分・塩分をとる。日なたの作業は短く交代。具合の悪い人はすぐ休ませる","大雪：屋根の雪の量を確認。チェーン・スタッドレスを確認。排水口のまわりから除雪。凍結時はフォークリフト・トラックの速度を落とす","警報のときは、環境管理責任者が作業してよいか決める。危ないときは作業中止を優先"] },
   { k:"oil", i:"🛢", t:"油漏れ", no:"緊-01", m:"油漏れ対策管理手順書",
-    say:"油が漏れたら、まず広がりをおさえるよ。車にあるオイル吸着マットでふき取って、すぐに報告するんだ。",
-    pts:["漏れた量と、広がりそうな範囲をたしかめる","お客さん・環境管理責任者・安全管理責任者に報告","車に積んであるオイル吸着マットでふき取る。または油膜分散剤・洗浄剤で取りのぞく","社外に広がりそうなときは、消防署などに連絡（時刻・場所・けが人の有無・二次災害のおそれ）","広がりそうなら囲いをして、まわりへの立入を止める","走行中に漏れたら、すぐ止まって、けが人をたしかめ、関係機関へ連絡","吸着したマットは、すぐ回収容器へ（砂の上などに置くと二次汚染になる）"] },
+    say:"油が漏れたときは、まず広がりを抑えます。車に備えたオイル吸着マットでふき取り、すぐに報告します。",
+    pts:["漏れた量と、広がりそうな範囲を確認する","お客様・環境管理責任者・安全管理責任者に報告","車に積んであるオイル吸着マットでふき取る。または油膜分散剤・洗浄剤で取りのぞく","社外に広がりそうなときは、消防署などに連絡（時刻・場所・けが人の有無・二次災害のおそれ）","広がりそうなら囲いをして、まわりへの立入を止める","走行中に漏れたら、すぐ止まって、負傷者を確認し、関係機関へ連絡","吸着したマットは、すぐ回収容器へ（砂の上などに置くと二次汚染になる）"] },
   { k:"fall", i:"🪨", t:"飛散・落下", no:"緊-02", m:"飛散・落下対策管理手順書",
-    say:"運ぶときは、かならずワイヤーとロープで荷物を固定するよ。ガスボンベや消火器みたいな、密閉した物は積まないんだ。",
-    pts:["運搬のときは、かならずワイヤー・ロープで固定（必要ならシートで覆う）","密閉物（油圧ジャッキ・消火器・ガスボンベ・モーターなど）は積まない","起きたら、すぐに止まって、けが人をたしかめ、本社と必要なら消防・警察へ連絡","飛び散った物・落ちた物は、ぜんぶ回収する","あとで事故報告書を出し、原因を見直す"] },
+    say:"運ぶときは、必ずワイヤーとロープで荷物を固定します。ガスボンベや消火器のような、密閉した物は積みません。",
+    pts:["運搬のときは、かならずワイヤー・ロープで固定（必要ならシートで覆う）","密閉物（油圧ジャッキ・消火器・ガスボンベ・モーターなど）は積まない","起きたら、すぐに止まって、負傷者を確認し、本社と必要なら消防・警察へ連絡","飛び散った物・落ちた物は、ぜんぶ回収する","あとで事故報告書を出し、原因を見直す"] },
   { k:"battery", i:"🔋", t:"電池の発火", no:"34", m:"電池類の回収・出荷の手順書",
-    say:"電池は、はしっこにテープを貼って、種類ごとに分けるよ。ほかの金属といっしょにすると、ショートして火が出ることがあるんだ。",
+    say:"電池は、端子にテープを貼り、種類ごとに分けます。ほかの金属と一緒にすると、ショートして発火するおそれがあります。",
     pts:["電池の端子（はしっこ）にテープを貼って絶縁する","乾電池・リチウムイオン電池・ボタン電池は、種類ごとに分ける","ほかの金属製品といっしょにしない（ショート→発熱・破裂・発火のおそれ）","電池が入ったままの製品は分解しない","回収のときは、かならず事務所に確認する","今年の緊急事態の訓練テーマは「リチウムイオン電池の発火」"] },
   { k:"call", i:"📞", t:"緊急時の連絡", no:"緊-07", m:"緊急時連絡体制の手順書",
-    say:"事故や災害のときは、決まった連絡先に、すぐに知らせるよ。近所の人から問い合わせがあったら、責任者が窓口になるんだ。",
+    say:"事故や災害のときは、決められた連絡先に、すぐに連絡します。近隣の方からの問い合わせには、責任者が対応します。",
     pts:["事故・自然災害・異常のときは、緊急時連絡先一覧で連絡する","就業時間外・休日は、役員の携帯に連絡","近所の人から苦情・問い合わせがあったら、環境管理責任者・安全衛生責任者が窓口になって対応し、社長に報告","警察 110　火事・救急 119　災害用伝言ダイヤル 171"] }];
 function sgDisHtml(d){ return `<div class="sgdisone"><div class="sgdisi">${d.i}</div><div><b>${esc(d.t)}</b><small>${esc(d.no)}　${esc(d.m)}</small></div></div><ol class="sgsteps">${d.pts.map((x, i) => `<li style="animation-delay:${i*.12}s">${esc(x)}</li>`).join("")}</ol>`; }
 function sgScenesX(ch, D, F){ const S = [];
   if (ch === "strength"){
-    S.push({ key:"st:1", say:"関根商店のいちばんの強みは、ぜんぶまとめて任せてもらえることなんだ！",
-      html:sgCard("💪 関根商店の強み　まるごと任せて安心", sgArrow([["🏗","機械作業","運ぶ・据え付ける・撤去する"],["🔩","金属回収・買取","いらない機械や金属を買い取る"],["🚛","産業廃棄物の収集運搬","出たごみを集めて運ぶ"]])
-        + `<div class="sgplus">${sgTiles([["⚙️","廃プラスチックの圧縮梱包","中間処理（処分業）"],["📄","電子マニフェスト","ごみの行き先を最後まで管理"],["🏅","ISO14001","環境の決まりを守って仕事"]])}</div>`) });
-    S.push({ key:"st:2", say:"たとえば、工場の機械を入れかえるとき。新しい機械を運んで据え付けて、古い機械は買い取ったり資源にしたり、出たごみも運ぶよ。お客さんは関根商店に1回たのむだけでいいんだ。",
-      html:sgCard("🏭 たとえば、工場の機械を入れかえるとき", `<ol class="sgsteps big">${["無料で現場を見にいく（県内・県外OK）","古い機械をはずして、積んで、運ぶ","新しい機械を運んで、据え付ける（芯出し・レベル出し・アンカー工事）","いらなくなった機械は買い取り、金属は資源にリサイクル","出たごみは産業廃棄物として集めて運ぶ（マニフェストで最後まで管理）"].map((x, i) => `<li style="animation-delay:${i*.3}s">${x}</li>`).join("")}</ol><div class="sgok">👉 ひとつの会社で、最初から最後まで</div>`) });
+    S.push({ key:"st:1", say:"関根商店の最大の強みは、すべてをまとめてお任せいただけることです。",
+      html:sgCard("💪 関根商店の強み　まるごと任せて安心", sgArrow([["🏗","機械作業","運ぶ・据え付ける・撤去する"],["🔩","金属回収・買取","いらない機械や金属を買い取る"],["🚛","産業廃棄物の収集運搬","出た廃棄物を集めて運ぶ"]])
+        + `<div class="sgplus">${sgTiles([["⚙️","廃プラスチックの圧縮梱包","中間処理（処分業）"],["📄","電子マニフェスト","廃棄物の行き先を最後まで管理"],["🏅","ISO14001","環境の決まりを守って仕事"]])}</div>`) });
+    S.push({ key:"st:2", say:"たとえば、工場の機械を入れ替えるとき。新しい機械の運搬と据え付け、古い機械の買い取りや資源化、出た廃棄物の運搬まで行います。お客様は、関根商店に一度ご依頼いただくだけで済みます。",
+      html:sgCard("🏭 たとえば、工場の機械を入れかえるとき", `<ol class="sgsteps big">${["無料で現場を見にいく（県内・県外OK）","古い機械をはずして、積んで、運ぶ","新しい機械を運んで、据え付ける（芯出し・レベル出し・アンカー工事）","いらなくなった機械は買い取り、金属は資源にリサイクル","出た廃棄物は、産業廃棄物として集めて運ぶ（マニフェストで最後まで管理）"].map((x, i) => `<li style="animation-delay:${i*.3}s">${x}</li>`).join("")}</ol><div class="sgok">👉 ひとつの会社で、最初から最後まで</div>`) });
   }
   if (ch === "kikai"){
-    S.push({ key:"kk:1", say:"今、関根商店がいちばん力を入れているお仕事、機械作業を紹介するよ！", html:sgPhoto(SGI.k_lift, "機械作業", "重量物運搬・設備レイアウト・撤去", "いちばん力を入れているお仕事") });
-    S.push({ key:"kk:2", say:"工場の生産ラインをふやしたり、べつの工場へ引っこししたり。大きな機械も、こわれやすい精密な機械も運ぶよ。",
-      html:sgCard("🏗 こんなお仕事をしているよ", sgTiles([["🏭","生産ラインの増設・移設"],["🚚","工場から工場へ、設備のお引っこし"],["🔧","機械の設置・組付け","芯出し・レベル出し"],["⚓","アンカー工事","自社で設置できる"],["🔬","精密機械の運搬","移す前と後で精度が変わらないように"],["📐","レイアウトの提案","作業のしやすさ・点検のしやすさも考える"]])) });
-    S.push({ key:"kk:3", say:"お仕事の流れはこうだよ。まず無料で現場を見にいって、運んで、据え付けて、いらなくなった機械やごみの片づけまでやるんだ。",
-      html:sgCard("📋 機械作業の流れ", sgArrow([["👀","現場調査","無料・県内県外OK"],["🔩","解体・積込","運搬"],["📏","据付","芯出し・レベル出し"],["💰","買取・廃棄","いらなくなった機械"],["🚛","ごみの運搬","産業廃棄物"]])) });
-    S.push({ key:"kk:4", say:"大きな機械をはずすときは、ガスで鉄を切るんだ。火花がバチバチ！ちゃんと防護服を着て、安全に作業しているよ。", html:sgPhoto(SGI.k_cut, "鉄を切って、はずす", "ガス切断") });
-    S.push({ key:"kk:5", say:"重たい機械は、まくら木で下から支えながら作業するよ。高所作業車にのって、二人で息を合わせるんだ。", html:sgPhoto(SGI.k_work, "支えながら、安全に", "まくら木・高所作業車") });
-    S.push({ key:"kk:6", say:"クレーンとワイヤーで、大きな機械をゆっくりつり上げるよ。どこにワイヤーをかけるかが、うでの見せどころなんだ。", html:sgPhoto(SGI.k_lift, "つり上げる", "クレーン・ワイヤー・シャックル") });
-    S.push({ key:"kk:7", say:"全国どこでも対応できるよ。運送保険にも入っているから安心。機械が止まる時間をできるだけ短くして、コストも工期もおさえるんだ。",
+    S.push({ key:"kk:1", say:"現在、関根商店が最も力を入れている、機械作業をご紹介します。", html:sgPhoto(SGI.k_lift, "機械作業", "重量物運搬・設備レイアウト・撤去", "いちばん力を入れているお仕事") });
+    S.push({ key:"kk:2", say:"工場の生産ラインの増設や、別の工場への移転に対応します。大きな機械も、壊れやすい精密な機械も、運搬します。",
+      html:sgCard("🏗 機械作業の内容", sgTiles([["🏭","生産ラインの増設・移設"],["🚚","工場から工場へ、設備の移転"],["🔧","機械の設置・組付け","芯出し・レベル出し"],["⚓","アンカー工事","自社で設置できる"],["🔬","精密機械の運搬","移す前と後で精度が変わらないように"],["📐","レイアウトの提案","作業のしやすさ・点検のしやすさも考える"]])) });
+    S.push({ key:"kk:3", say:"作業の流れは、次のとおりです。まず現場を確認し、運搬と据え付けを行い、不要になった機械や廃棄物の片づけまで行います。",
+      html:sgCard("📋 機械作業の流れ", sgArrow([["👀","現場調査","無料・県内県外OK"],["🔩","解体・積込","運搬"],["📏","据付","芯出し・レベル出し"],["💰","買取・廃棄","いらなくなった機械"],["🚛","廃棄物の運搬","産業廃棄物"]])) });
+    S.push({ key:"kk:4", say:"大きな機械を取り外すときは、ガスで鉄を切断することがあります。防護服を着用し、安全に作業を行います。", html:sgPhoto(SGI.k_cut, "鉄を切って、はずす", "ガス切断") });
+    S.push({ key:"kk:5", say:"重い機械は、まくら木で下から支えながら作業します。高所作業車に乗り、二人で呼吸を合わせて行います。", html:sgPhoto(SGI.k_work, "支えながら、安全に", "まくら木・高所作業車") });
+    S.push({ key:"kk:6", say:"クレーンとワイヤーで、大きな機械をゆっくり吊り上げます。ワイヤーをかける位置の判断が、技術の見せどころです。", html:sgPhoto(SGI.k_lift, "つり上げる", "クレーン・ワイヤー・シャックル") });
+    S.push({ key:"kk:7", say:"対応地域は、全国です。運送保険にも加入しています。機械が止まる時間をできるだけ短くし、費用と工期を抑えます。",
       html:sgCard("✨ 機械作業の強み", sgTiles([["🗾","全国対応"],["👀","現場調査は無料"],["🛡","運送保険に加入ずみ"],["⏱","機械の止まる時間を最小限に"],["💴","コストダウンと短い工期"],["🤝","運ぶ・据付・買取・廃棄まで一社で"]])) });
     const v25 = D.vs.find(v => /25\s*t.*セルフ|セルフ.*25\s*t/i.test(String(v.nickname || "") + String(v.number || "")));
     const ld = v => +String((v && v.maxLoad) || "").replace(/[^\d.]/g, "") || 0;
-    S.push({ key:"kk:8", say:"じゃーん！これが25tセルフ！荷台がスロープみたいに下がって、大きな機械をそのまま積めるんだ。クレーンもついているよ！" + (ld(v25) ? `最大${sgNum(ld(v25), 0)}キロまで積めるんだって！` : ""),
+    S.push({ key:"kk:8", say:"こちらが、25トンのセルフです。荷台がスロープのように下がり、大きな機械を、そのまま積み込めます。クレーンも備えています。" + (ld(v25) ? `最大${sgNum(ld(v25), 0)}キロまで積載できます。` : ""),
       html:`<div class="sgbang"><img src="${SGI.s25_diag}" alt=""><div class="bt"><small>いすゞ ギガ・クレーンつき</small><b>25tセルフ</b>${ld(v25) ? `<span>最大積載 ${sgNum(ld(v25), 0)}kg</span>` : ""}</div></div>` });
-    S.push({ key:"kk:9", say:"前から見ても、横から見ても、かっこいいでしょ！荷台の板を下ろすと、機械をころがして積みこめるよ。",
+    S.push({ key:"kk:9", say:"荷台の板を下ろすと、機械を転がして、積み込むことができます。",
       html:sgCard("🚛 25tセルフ", sgGal([[SGI.s25_front,"前から"],[SGI.s25_side,"横から"],[SGI.s25_ramp,"荷台を下ろしたところ"],[SGI.s25_rear,"うしろから"],[SGI.s25_side2,"クレーンと荷台"],[SGI.s25_door,"ドア"]])) });
-    S.push({ key:"kk:10", say:"こっちはセルフ。小さなトラックだって、そのまま積んで運べちゃうんだ！",
+    S.push({ key:"kk:10", say:"こちらは、セルフです。小さなトラックも、そのまま積んで運べます。",
       html:`<div class="sgbang"><img src="${SGI.sf_side}" alt=""><div class="bt"><small>三菱ふそう・クレーンつき</small><b>セルフ</b><span>トラックも運べる！</span></div></div>` });
-    S.push({ key:"kk:11", say:"セルフもいろんな角度から見てみよう。クレーンで重い物を積んで、そのまま現場へ運ぶよ。",
+    S.push({ key:"kk:11", say:"セルフを、さまざまな角度からご覧ください。クレーンで重い物を積み込み、そのまま現場へ運びます。",
       html:sgCard("🚛 セルフ", sgGal([[SGI.sf_diag,"ななめ前から"],[SGI.sf_front,"前から"],[SGI.sf_rear,"うしろから"],[SGI.sf_door,"ドア"]])) });
   }
   if (ch === "metal"){
@@ -3642,29 +3640,14 @@ function sgScenesX(ch, D, F){ const S = [];
       html:sgCard("♻️ 資源再利用で、できること", sgTiles([["🔎","種類ごとに選別","鉄・非鉄金属・レアメタルを分ける"],["🧱","切り粉をブリケットに","圧縮して固め、原料として再利用"],["🌍","資源を繰り返し使う","鉱石の採掘と、廃棄物を減らす"],["📜","許可と法令を守る","ISO14001の環境管理のもとで"]])) });
     S.push({ key:"mt:2", say:"鉄のリサイクルは、ぐるっと回る輪になっています。工場から出た鉄くずを、関根商店が回収し、選別して、資源として次の工程へ送ります。そこで再び原料となり、新しい鉄になります。",
       html:sgCard("🔄 鉄のリサイクルのしくみ", `<div class="sgring"><div class="rg"></div>${[["🏭","再資源化","新しい鉄になる"],["🏗","工場","鉄くずが出る"],["🚛","回収","関根商店のトラック"],["🏢","関根商店","選別・まとめる"],["🚚","次の工程へ","資源として送る"]].map((x, i) => `<div class="nd n${i}" style="animation-delay:${i*.6}s"><span>${x[0]}</span><b>${x[1]}</b><small>${x[2]}</small></div>`).join("")}<div class="tk">🚛</div></div>`) });
-    S.push({ key:"mt:3", say:"鉄は「産業の米」っていわれるくらい、いろんな物に使われているんだ。金属は、何度でもリサイクルできる大切な資源なんだよ。",
+    S.push({ key:"mt:3", say:"鉄は「産業の米」といわれるほど、さまざまな物に使われています。金属は、何度でもリサイクルできる、大切な資源です。",
       html:sgCard("🍚 「産業の米」といわれる鉄", sgTiles([["🏙","ビル・橋・車・機械","くらしのいろんな所に鉄"],["♾️","金属は半永久的に使える","とかして、また使える大切な資源"],["⛏","地下の資源にはかぎりがある","だから、くり返し使うことが大事"],["🌏","SDGs 12「つくる責任 つかう責任」","資源を大切に使う"]])) });
-    S.push({ key:"mt:4", say:"鉄だけじゃなくて、アルミ、ステンレス、銅や真鍮、電線やモーターまで、いろんな金属をあつかっているよ。",
+    S.push({ key:"mt:4", say:"鉄のほかに、アルミ、ステンレス、銅や真鍮、電線やモーターなど、さまざまな金属を取り扱っています。",
       html:sgCard("🔩 あつかう金属", `<div class="sgcat">${[["鉄くず","新断・鉄筋・H鋼・切断・甲山・ダライ粉"],["アルミ","新切・アルミサッシ・ダイカスト・ラジエーター・アルミ缶・アルミホイル"],["ステンレス","304・316・クローム系・解体ステン"],["銅・真鍮","2号銅・下銅・真鍮・込中・ワイヤーカット"],["その他","エナメル線・被覆線・超硬・ニッケル・銅粉・アルミ粉・ステン粉・鉛・モーター"],["機械","コンプレッサー・定盤・モーターなど、いらなくなった工業機械"]].map((x, i) => `<div style="animation-delay:${i*.1}s"><b>${x[0]}</b><span>${x[1]}</span></div>`).join("")}</div>`) });
-    S.push({ key:"mt:5", say:"パソコンの基板やCPUの中には、金や銀、レアメタルという宝物がかくれているんだ。まちの中の鉱山、都市鉱山っていうんだよ。",
+    S.push({ key:"mt:5", say:"パソコンの基板やCPUには、金や銀、レアメタルが含まれています。このような、身近にある資源を、「都市鉱山」と呼びます。",
       html:sgCard("💎 レアメタル回収（都市鉱山）", sgTiles([["🥇","金・銀"],["⚙️","モリブデン・チタン・インコネル"],["🖥","CPU・ハードディスク基板"],["💻","デスクトップ・ノートパソコンの基板"],["🔌","リードフレーム・混在基板"]])) });
-    S.push({ key:"mt:6", say:"天井クレーンに付けた、大きな磁石、リフマグで、鉄をトラックに積みこみます。磁石で鉄をまとめてつかんで持ち上げるので、人の手で積むより、短い時間で、たくさん積めます。回収は、長野県の各地のほか、山梨県、群馬県、埼玉県でも行っています。",
-      html:sgCard("🧲 リフマグで積みこみ", sgGal([[SGI.m2,"天井クレーンのリフマグ"],[SGI.m1,"トラックに積みこむ"]]) + `<div class="sgok">📍 長野県（上田市・佐久市・松本市・長野市・飯田市など）／山梨県・群馬県・埼玉県</div>`) });
-    S.push({ key:"mt:6b", say:"リフマグでの作業は、安全が第一です。吊った荷の下には、絶対に入りません。作業の前に、周囲に人がいないかを確認し、合図をそろえて、ゆっくり動かします。雷のおそれがあるときと、強風のときは、クレーンを止めます。",
-      html:sgCard("🧲 リフマグのしくみと安全", sgTiles([["🧲","鉄をまとめてつかむ","磁石に付く金属を、一度に持ち上げる"],["🏗","天井クレーンで運ぶ","ヤードから、トラックの荷台へ"],["🦺","吊り荷の下には入らない","作業前に周囲を確認・合図をそろえる"],["⛈","雷・強風のときは止める","天井クレーンの使用を中止"]])) });
-  }
-  if (ch === "kanri"){
-    const fy = F.fy, inFy = x => { const d = x.date || ""; return d && sgFy(String(d).slice(0,7)) === fy; };
-    const nc = D.nc.filter(inFy).length, wt = D.wt.filter(inFy).length, fr = D.fr.filter(inFy).length;
-    const R = [["毎日",[["🚛","車両の日常点検","点検ラクラク・32項目"]]],
-      ["毎月",[["🦺","安全衛生パトロール",F.patrol ? `今年度 ${F.patrol}回` : "18項目"],["🔊","圧縮機の騒音チェック",nc ? `今年度 ${nc}回` : "昼70dB以下"],["🧹","クリーン度チェック","ゾーンごとに100点満点"],["⛽","軽油・電気・水の記録",""],["🚜","フォークリフトの月次点検",""]]],
-      ["3か月ごと",[["❄️","フロンの簡易点検",fr ? `今年度 ${fr}回` : "エアコンなど"]]],
-      ["毎年",[["💧","排水の水質検査",wt ? `今年度 ${wt}回` : "pH 7.0〜8.0"],["🔍","内部監査・順守評価",""],["👔","マネジメントレビュー",""],["🚨","緊急事態の訓練・消火訓練",""],["🎓","教育訓練",F.train ? `今年度 ${F.train}回` : ""]]],
-      ["2年ごと",[["⚖️","トラックスケール（台貫）の検査",""]]],["5年ごと",[["📈","圧縮機の振動チェック",""]]]];
-    S.push({ key:"kn:1", say:"関根商店では、毎日・毎月・毎年、いろんなことをきちんと点検して、記録しているよ。だから安心して任せてもらえるんだ。",
-      html:sgCard("📋 こんなに管理しているよ", `<div class="sgfreq">${R.map(([h, L], j) => `<div class="fr" style="animation-delay:${j*.15}s"><b>${h}</b><div>${L.map(x => `<span>${x[0]} ${x[1]}${x[2] ? `<small>${x[2]}</small>` : ""}</span>`).join("")}</div></div>`).join("")}</div>`), btns:[["patrol","🦺 安全パトロール"],["train","🎓 教育訓練"]] });
-    S.push({ key:"kn:2", say:"記録は、ISO管理のアプリでぜんぶ見られるようにしているよ。手順書も50冊以上あって、いつでも見返せるんだ。",
-      html:sgCard("📱 アプリで記録", sgTiles([["📅","ISO管理","点検・監査・訓練の記録"],["🚛","点検ラクラク","QRを読むだけの車両点検"],["📒","引取先管理","作業日報・回収の記録"],["📘","環境手順書",(D.man.length || 50) + "冊"]])) });
+    S.push({ key:"mt:6", say:"天井クレーンに付けた、大きな磁石、リフマグで、鉄をトラックに積みこみます。磁石で鉄をまとめてつかんで持ち上げるので、人の手で積むより、短い時間で、たくさん積めます。作業は、安全が第一です。吊った荷の下には、絶対に入りません。作業の前に、周囲に人がいないかを確認し、合図をそろえて、ゆっくり動かします。雷のおそれがあるときと、強風のときは、クレーンを止めます。回収は、長野県の各地のほか、山梨県、群馬県、埼玉県でも行っています。",
+      html:sgCard("🧲 リフマグで積みこみ", sgGal([[SGI.m2,"天井クレーンのリフマグ"],[SGI.m1,"トラックに積みこむ"]]) + sgTiles([["🧲","鉄をまとめてつかむ","磁石に付く金属を、一度に持ち上げる"],["🏗","天井クレーンで運ぶ","ヤードから、トラックの荷台へ"],["🦺","吊り荷の下には入らない","作業前に周囲を確認・合図をそろえる"],["⛈","雷・強風のときは止める","天井クレーンの使用を中止"]]) + `<div class="sgok">📍 長野県（上田市・佐久市・松本市・長野市・飯田市など）／山梨県・群馬県・埼玉県</div>`) });
   }
   return S.length ? S : null; }
 /* 災害の章（env の中で使う） */
@@ -3802,54 +3785,54 @@ function lesMark(k){ try { const o = lesDone(); o[k] = sgYmd(); localStorage.set
 function lesMenu(){ sgStop(); SG.mode = "les"; const dn = lesDone(), n = LES.filter(l => dn[l.k]).length;
   $("sgShow").hidden = false; $("sgTitle").textContent = "🎓 社員研修"; $("sgDots").innerHTML = ""; $("sgDet").hidden = true;
   $("sgBody").innerHTML = sgCard(`🎓 社員研修　${n}／${LES.length} できた`, `<div class="sgles">${LES.map((l, i) => `<button data-sgl="${l.k}" style="animation-delay:${i*.06}s"><span>${l.i}</span><b>${l.t}</b>${dn[l.k] ? `<em>✅</em>` : `<em class="no">はじめる ▶</em>`}</button>`).join("")}</div>`);
-  const say = n === LES.length ? "ぜんぶできたね！すごい！わからなくなったら、いつでも見返してね。" : "研修は、わたし、ねねちゃんが先生だよ！上から順番に、ひとつずつ覚えていこうね。";
+  const say = n === LES.length ? "すべての研修を修了しました。わからなくなったときは、いつでも見返してください。" : "社員研修です。上から順番に、ひとつずつ学んでいきましょう。";
   sgWhoSet(); $("sgSay").textContent = say; sgSpeak(say); }
 const TK = "https://rie4649.github.io/iso-kanri/";
 function lesScenes(k, D){ const S = [];
   if (k === "L_tenken"){
     /* ISO管理「環境への取り組み」の「車両点検アプリ(点検ラクラク)」のページと同じ画面・同じ順番（版6.9で差しかえ） */
     const T = [
-      ["01","表紙",false,"点検ラクラクは、トラックの毎日の点検を、スマホでかんたんにできるアプリだよ。現場はQRだけ。記録と情報は、ひとつのアプリにまとまっているんだ。"],
-      ["02","QRで開く画面",false,"車に貼ってあるQRコードをスマホで読むと、その車の点検画面がすぐ開くよ。"],
-      ["03","日常点検",false,"乗る前に日常点検をするよ。上から順番に、ひとつずつ確かめていこうね。"],
-      ["tk-daily","点検記録(32項目)",true,"これが本物の画面。32項目を「良」か「否」で押していくだけだよ。"],
-      ["04","緊急連絡先・環境手順書",false,"もしもの時の連絡先や、環境手順書も、このアプリから見られるよ。"],
-      ["tk-emergency","緊急連絡先",true,"事故やけがの時は、ここを開けば、だれに連絡するかすぐ分かるよ。"],
-      ["tk-manuals","環境手順書",true,"油がもれた時や火事の時の手順書も、ここで読めるよ。"],
-      ["05","不具合報告",false,"こわれているところや、おかしいところを見つけたら、不具合報告で知らせてね。"],
-      ["tk-reports","不具合報告一覧",true,"出した報告は一覧になって、事務所でも見られるよ。直ったかどうかも分かるんだ。"],
-      ["06","取引先情報・運搬ルート",false,"行き先の取引先の情報や、運ぶルートも見られるよ。"],
-      ["tk-clients","取引先",true,"取引先の場所や、気をつけることが書いてあるよ。"],
-      ["tk-route","運搬ルート(地図)",true,"地図で運ぶ道も確かめられるよ。"],
-      ["07","事務所での記録管理",false,"点検の記録は、事務所に自動で集まるよ。紙の点検表を集めなくていいんだ。"],
-      ["tk-home","今日の点検",true,"今日の点検がすんだかも、ひと目で分かるよ。これで点検ラクラクはばっちり！"]];
+      ["01","表紙",false,"点検ラクラクは、トラックの毎日の点検を、スマートフォンで簡単に行えるアプリです。現場での操作は、QRコードを読み取るだけです。記録と情報は、ひとつのアプリにまとまっています。"],
+      ["02","QRで開く画面",false,"車に貼ってあるQRコードを、スマートフォンで読み取ると、その車の点検画面がすぐに開きます。"],
+      ["03","日常点検",false,"乗る前に、日常点検を行います。上から順番に、ひとつずつ確認します。"],
+      ["tk-daily","点検記録(32項目)",true,"実際の画面です。32項目を、「良」か「否」で押していきます。"],
+      ["04","緊急連絡先・環境手順書",false,"緊急時の連絡先や、環境手順書も、このアプリから確認できます。"],
+      ["tk-emergency","緊急連絡先",true,"事故やけがのときは、ここを開けば、誰に連絡するかがすぐにわかります。"],
+      ["tk-manuals","環境手順書",true,"油が漏れたときや、火災のときの手順書も、ここで読めます。"],
+      ["05","不具合報告",false,"故障している箇所や、異常を見つけたときは、不具合報告で知らせます。"],
+      ["tk-reports","不具合報告一覧",true,"提出した報告は、一覧になり、事務所でも確認できます。修理が済んだかどうかも、わかります。"],
+      ["06","取引先情報・運搬ルート",false,"行き先の取引先の情報や、運搬ルートも確認できます。"],
+      ["tk-clients","取引先",true,"取引先の場所や、注意事項が記載されています。"],
+      ["tk-route","運搬ルート(地図)",true,"地図で、運搬する道も確認できます。"],
+      ["07","事務所での記録管理",false,"点検の記録は、事務所に自動で集まります。紙の点検表を集める必要はありません。"],
+      ["tk-home","今日の点検",true,"今日の点検が済んでいるかも、ひと目でわかります。以上が、点検ラクラクの使い方です。"]];
     T.forEach((x, i) => S.push({ key:"lt:" + x[0], say:x[3], html:sgCard(`🚛 ${i+1}. ${x[2] ? "📱 " : ""}${x[1]}`,
       `<img class="sglimg" src="${TK}tenken/${x[0]}.png" alt="" data-zoom="1" onerror="if(!this.dataset.j){this.dataset.j=1;this.src='${TK}${x[0]}.png';}else{this.replaceWith(Object.assign(document.createElement('div'),{className:'sgok',textContent:'（画像はISO管理の「環境への取り組み」で見られます）'}))}">`
       + (x[2] ? '<div class="sgcap">📱 実際のアプリの画面</div>' : '')
       + (i === T.length - 1 ? '<div style="margin-top:8px;"><a href="https://rie4649.github.io/tenken-rakuraku/index.html" target="_blank" rel="noopener" style="text-decoration:none;display:inline-block;padding:10px 18px;border-radius:999px;background:#1E6B45;color:#fff;font-weight:900;">🚚 点検ラクラクを開く ↗</a></div>' : '')) })); }
   if (k === "L_hiki"){
-    const H = [["h01","作業日報をつけるときは、まず「＋作業日報を書く」を押すよ。この日の件数や、日報のプレビューもここで見られるんだ。","作業日報のトップ"],["h02","最初に、作業する人を選ぶよ。","作業員を選ぶ"],["h03","人を選ぶと、乗っている車が自動で入るよ。ちがっていたら、車を押して直してね。","車は自動で入る"],["h04","引き取り先を選ぶよ。「回収待ちの会社」に出ている会社は、押すだけで選べるんだ。部署も書けるよ。","回収待ちの会社から選ぶ"],["h05","回収待ちにない会社は、会社名やよみがなで検索してね。","会社を検索"],["h06","回収した品名を押すよ。数量や単価は、わからなければ書かなくても大丈夫。","品名を押す"],["h07","メモがあれば書いて、「保存する」を押したらおしまい。入力した時刻もいっしょに記録されるよ。","メモ・保存"],["h08","会社の画面では、電話・地図・住所・入り方の注意・回収品・契約・回収の記録が見られるよ。","会社の画面"],["h09","回収予定があると赤く出るよ。電話依頼や回収の記録ともつながっていて、LINEで送ることもできるんだ。","回収予定・LINEで送る"]];
+    const H = [["h01","作業日報をつけるときは、まず「＋作業日報を書く」を押します。この日の件数や、日報のプレビューも、ここで確認できます。","作業日報のトップ"],["h02","最初に、作業する人を選びます。","作業員を選ぶ"],["h03","人を選ぶと、乗っている車が自動で入ります。違っているときは、車を押して直します。","車は自動で入る"],["h04","引き取り先を選びます。「回収待ちの会社」に出ている会社は、押すだけで選べます。部署も記入できます。","回収待ちの会社から選ぶ"],["h05","回収待ちにない会社は、会社名や読み仮名で検索します。","会社を検索"],["h06","回収した品名を押します。数量や単価は、わからなければ、記入しなくても構いません。","品名を押す"],["h07","メモがあれば記入して、「保存する」を押せば完了です。入力した時刻も、一緒に記録されます。","メモ・保存"],["h08","会社の画面では、電話、地図、住所、入り方の注意、回収品、契約、回収の記録が確認できます。","会社の画面"],["h09","回収予定があると、赤く表示されます。電話依頼や回収の記録ともつながっており、LINEで送ることもできます。","回収予定・LINEで送る"]];
     H.forEach((x, i) => S.push({ key:"lh:" + (i+1), say:x[1], html:sgCard(`📒 ${i+1}. ${x[2]}`, `<img class="sglimg tall" src="${SGI[x[0]]}" alt="" data-zoom="1"><div class="sgcap">名前・電話番号・住所はぼかしています</div>`) })); }
   if (k === "L_safety"){
-    S.push({ key:"ls:1", say:"場内では、かならず保護帽、ヘルメットをかぶるよ。ぼくもいつもかぶっているでしょ！", html:sgCard("⛑ いちばん大事なきまり", sgTiles([["⛑","場内ではかならず保護帽"],["👀","重機・フォークリフトの近くに寄らない"],["🚶","人と車が交わる所（台貫・出入口）は左右確認"],["🔥","火気厳禁の掲示を守る"]])) });
-    S.push({ key:"ls:2", say:"フォークリフトは、ヘルメットをかぶって運転するよ。空のときは前に出たツメに注意。社内は時速10キロまでなんだ。", html:sgCard("🚜 フォークリフト（手順書18）", `<ol class="sgsteps">${["かならずヘルメットをかぶって作業","空のときは、前に出ているツメに特に注意","荷物を積むと前が見えにくい。荷くずれに注意してゆっくり","社内の走行は時速10kmまで","月1回、月次点検をして「車輌安全管理チェック表」に記入。年次点検は業者へ","オイル・バッテリー・冷却水・タイヤ・グリスアップを担当者が管理"].map(x => `<li>${x}</li>`).join("")}</ol>`) });
-    S.push({ key:"ls:3", say:"トラックに積んだ物は、ロープやガッチャでしっかり固定して、必要ならシートをかけるよ。ガスボンベや消火器みたいな密閉した物は、積まないんだ。", html:sgCard("🚛 積みこみのきまり（手順書09・緊-02）", sgTiles([["🪢","ロープ・ガッチャで固定","必要ならシートで覆う"],["🚫","密閉物は積まない","油圧ジャッキ・消火器・ガスボンベ・モーターなど"],["📜","許可を受けた車両で運ぶ",""],["🔎","違反物が混ざっていないか確認しながら積む",""]])) });
-    S.push({ key:"ls:4", say:"消火器の場所を覚えておこう。廃プラスチック置き場は中性強化液、ほかの置き場は粉末の消火器だよ。", html:sgCard("🧯 消火器の場所", sgTiles([["🧯",`社内に ${EXT4.length}本`],["💧","廃プラ置き場は中性強化液","冷やす力が強く、再発火しにくい"],["🌫","ほかの置き場は粉末","すぐ効く・油の火事に強い"]])), btns:[["ext","🧯 消火器の置き場図"]] });
-    S.push({ key:"ls:5", say:"もしもの時の集合場所は、大型駐車場だよ。ぼくといっしょに避難の練習をしてみよう！", html:sgCard("🏃 集合場所は大型駐車場", sgTiles([["📢","「火事だ！」と大声で"],["🏃","避難経路で大型駐車場へ"],["🙋","点呼でみんなの無事を確認"]])) });
+    S.push({ key:"ls:1", say:"場内では、必ず保護帽（ヘルメット）を着用します。", html:sgCard("⛑ いちばん大事なきまり", sgTiles([["⛑","場内ではかならず保護帽"],["👀","重機・フォークリフトの近くに寄らない"],["🚶","人と車が交わる所（台貫・出入口）は左右確認"],["🔥","火気厳禁の掲示を守る"]])) });
+    S.push({ key:"ls:2", say:"フォークリフトは、ヘルメットを着用して運転します。荷を積んでいないときは、前に出たツメに注意します。社内の速度は、時速10キロまでです。", html:sgCard("🚜 フォークリフト（手順書18）", `<ol class="sgsteps">${["かならずヘルメットをかぶって作業","空のときは、前に出ているツメに特に注意","荷物を積むと前が見えにくい。荷くずれに注意してゆっくり","社内の走行は時速10kmまで","月1回、月次点検をして「車輌安全管理チェック表」に記入。年次点検は業者へ","オイル・バッテリー・冷却水・タイヤ・グリスアップを担当者が管理"].map(x => `<li>${x}</li>`).join("")}</ol>`) });
+    S.push({ key:"ls:3", say:"トラックに積んだ物は、ロープやラッシングベルトで固定し、必要に応じてシートをかけます。ガスボンベや消火器のような、密閉した物は積みません。", html:sgCard("🚛 積みこみのきまり（手順書09・緊-02）", sgTiles([["🪢","ロープ・ガッチャで固定","必要ならシートで覆う"],["🚫","密閉物は積まない","油圧ジャッキ・消火器・ガスボンベ・モーターなど"],["📜","許可を受けた車両で運ぶ",""],["🔎","違反物が混ざっていないか確認しながら積む",""]])) });
+    S.push({ key:"ls:4", say:"消火器の場所を、覚えておいてください。廃プラスチック置き場は中性強化液、ほかの置き場は粉末の消火器を設置しています。", html:sgCard("🧯 消火器の場所", sgTiles([["🧯",`社内に ${EXT4.length}本`],["💧","廃プラ置き場は中性強化液","冷やす力が強く、再発火しにくい"],["🌫","ほかの置き場は粉末","すぐ効く・油の火事に強い"]])), btns:[["ext","🧯 消火器の置き場図"]] });
+    S.push({ key:"ls:5", say:"非常時の集合場所は、大型駐車場です。避難の手順を、確認してください。", html:sgCard("🏃 集合場所は大型駐車場", sgTiles([["📢","大声で周囲に知らせる"],["🏃","避難経路で大型駐車場へ"],["🙋","点呼で全員の無事を確認"]])) });
     S.push({ evac:true }); }
   if (k === "L_manifest"){
-    S.push({ key:"lm:1", say:"マニフェストは、ごみがちゃんと最後まで処理されたかをたしかめる伝票だよ。ごみといっしょに、伝票がバトンみたいに回っていくんだ。", html:sgCard("📄 マニフェストってなに？", sgArrow([["🏭","出す人","排出事業者"],["🚛","運ぶ人","収集運搬（関根商店）"],["⚙️","処分する人","中間処理"],["🏔","最後の処分","最終処分"]]) + `<div class="sgok">紙のマニフェストは A・B1・B2・C1・C2・D・E の7枚つづり</div>`) });
-    S.push({ key:"lm:2", say:"運ぶときは、ごみといっしょに伝票を受け取るよ。中身をたしかめて名前を書いたら、A票を出す人に返すんだ。運び終わったら、運搬終了日を書いて、処分する会社にわたすよ。", html:sgCard("🚛 運ぶときにすること（手順書07）", `<ol class="sgsteps">${["ごみといっしょに、記入ずみのマニフェスト（A〜E票）を受け取る","内容をたしかめて名前を書き、A票を出す人に返す","運び終わったら運搬終了日を書いて、ごみといっしょに処分する会社へわたす","運搬中はマニフェストを持っておく","うその内容のマニフェストは、ぜったいに出さない"].map(x => `<li>${x}</li>`).join("")}</ol>`) });
-    S.push({ key:"lm:3", say:"処分が終わったら、10日以内に伝票を返すよ。事務所では、マニフェストを5年間とっておいて、毎年6月に県へ報告するんだ。", html:sgCard("🗂 事務所ですること", sgTiles([["📮","処分が終わったら10日以内に返送","C2票は運んだ会社へ・D票は出した人へ"],["🗄","事務所で5年間保管",""],["📊","毎年6月に実績報告書を県へ",""],["⏰","返ってこない時は問い合わせ","自主基準は交付から60日以内"]])) });
-    S.push({ key:"lm:4", say:"電子マニフェストは、紙のかわりにインターネットのJWNETで管理するよ。運ぶ会社は、ごみを引きわたした日から3日以内に登録するんだ。", html:sgCard("💻 電子マニフェスト（JWNET）", sgTiles([["⌨️","引きわたしから3日以内に登録","引きわたした日はかぞえない"],["🗄","紙の保管はいらない","5年分はいつでも見られる"],["📊","県への報告はセンターがしてくれる",""]])) }); }
+    S.push({ key:"lm:1", say:"マニフェストは、廃棄物が最後まで適正に処理されたことを確認するための伝票です。廃棄物と一緒に、伝票も、排出事業者、運搬、処分の順に回ります。", html:sgCard("📄 マニフェストとは", sgArrow([["🏭","排出する人","排出事業者"],["🚛","運搬する人","収集運搬（関根商店）"],["⚙️","処分する人","中間処理"],["🏔","最後の処分","最終処分"]]) + `<div class="sgok">紙のマニフェストは、A・B1・B2・C1・C2・D・E の7枚つづりです</div>`) });
+    S.push({ key:"lm:2", say:"運搬するときは、排出事業者様が記載したマニフェストを、廃棄物と一緒に受け取ります。内容を確認して運搬担当者の欄に記入し、A票を排出事業者様に返します。運搬が終わったら、運搬終了日を記入して、処分する会社に渡します。廃棄物の種類によって処分先が違うので、処分先を間違えないよう注意します。", html:sgCard("🚛 運ぶときにすること（手順書07）", `<ol class="sgsteps">${["排出事業者様が記載したマニフェスト（A〜E票）を、廃棄物と一緒に受け取る","内容を確認して、運搬担当者の欄に氏名を記入し、A票を排出事業者様に返す","廃棄物の種類によって処分先が違うので、処分先を間違えないよう確認する","運搬が終わったら、運搬終了日を記入して、廃棄物と一緒に処分する会社へ渡す","運搬中は、マニフェストを携行する","事実と異なる内容のマニフェストは、決して交付しない"].map(x => `<li>${x}</li>`).join("")}</ol>`) });
+    S.push({ key:"lm:3", say:"処分が終わると、10日以内に、伝票が返送されます。事務所では、マニフェストを5年間保存し、毎年6月に、県へ報告します。", html:sgCard("🗂 事務所ですること", sgTiles([["📮","処分が終わったら10日以内に返送","C2票は運搬した会社へ・D票は排出事業者様へ"],["🗄","事務所で5年間保管",""],["📊","毎年6月に実績報告書を県へ",""],["⏰","返送されないときは問い合わせ","自主基準は交付から60日以内"]])) });
+    S.push({ key:"lm:4", say:"電子マニフェストは、紙の代わりに、インターネットのJWNETで管理します。運搬する会社は、廃棄物を引き渡した日から3日以内に、登録します。", html:sgCard("💻 電子マニフェスト（JWNET）", sgTiles([["⌨️","引き渡しから3日以内に登録","引き渡した日は数えない"],["🗄","紙の保管は不要","5年分は、いつでも確認できる"],["📊","県への報告は、情報処理センターが行う",""]])) }); }
   if (k === "L_mkaki"){   /* 紙のマニフェスト：運ぶ会社（関根商店）が書くところ。手順書07と法律のきまりから（細かい書き方は会社の決まりに合わせて✏️で足してね） */
-    S.push({ key:"mk:1", say:"マニフェストの書き方を覚えよう。関根商店は運ぶ会社だから、書くところは決まっているよ。出す人が書くところと、運ぶ人が書くところを見分けようね。", html:sgCard("✍️ だれが、どこを書く？", sgTiles([["🏭","出す人（排出事業者）が書く","交付した日・交付番号・会社名と住所・ごみの種類と量・荷姿・運ぶ会社・処分する会社"],["🚛","運ぶ人（関根商店）が書く","運搬担当者の名前・運搬が終わった日"],["⚙️","処分する人が書く","処分担当者の名前・処分が終わった日"]])) });
-    S.push({ key:"mk:2", say:"ごみを受け取るとき、まず中身と伝票が合っているか、種類と量をたしかめるよ。合っていたら運搬担当者の欄に名前を書いて、A票を出す人に返すんだ。", html:sgCard("① 受け取るとき", `<ol class="sgsteps">${["ごみといっしょに、記入ずみのマニフェスト（A〜E票）を受け取る","伝票の「種類・量・荷姿」と、実物が合っているかたしかめる","運搬担当者の欄に名前を書く（受け取ったしるし）","A票をはずして、出す人に返す（A票は出す人の控え）","残りのB1〜E票は、ごみといっしょに運ぶ"].map(x => `<li>${x}</li>`).join("")}</ol>`) });
-    S.push({ key:"mk:3", say:"処分する会社にとどけたら、B1票とB2票に運搬が終わった日と名前を書くよ。B2票は出す人に返して、B1票は関根商店の控えとして5年間とっておくんだ。", html:sgCard("② 運び終わったら", `<ol class="sgsteps">${["処分する会社に、ごみといっしょにC1〜E票をわたす","B1票・B2票に「運搬終了年月日」と運搬担当者の名前を書く","B2票は出す人へ送る（運び終わってから10日以内）","B1票は関根商店の控え。事務所で5年間保管"].map(x => `<li>${x}</li>`).join("")}</ol>`) });
-    S.push({ key:"mk:4", say:"処分が終わると、C2票が関根商店にもどってくるよ。これも5年間とっておこう。書きまちがえたら、二重線を引いて書き直してね。", html:sgCard("③ 事務所でのしまつ", sgTiles([["📮","C2票がもどってくる","処分が終わったしるし。5年間保管"],["🗄","B1票・C2票は5年保管","手順書07"],["✏️","書きまちがえたら","二重線で消して書き直す（会社の決まりに合わせてね）"],["❓","わからない時は事務所へ","勝手に書きかえない"]])) }); }
+    S.push({ key:"mk:1", say:"マニフェストの書き方です。関根商店は運搬する会社なので、記入する欄が決まっています。排出事業者様が記入する欄と、運搬者が記入する欄を、見分けてください。", html:sgCard("✍️ 誰が、どこを記入するか", sgTiles([["🏭","排出事業者様が記入","交付日・交付番号・会社名と住所・廃棄物の種類と量・荷姿・運搬する会社・処分する会社"],["🚛","運搬者（関根商店）が記入","運搬担当者の氏名・運搬が終わった日"],["⚙️","処分する会社が記入","処分担当者の氏名・処分が終わった日"]])) });
+    S.push({ key:"mk:2", say:"廃棄物を受け取るときは、まず、中身と伝票が合っているか、種類と量を確認します。合っていれば、運搬担当者の欄に氏名を記入し、A票を排出事業者様に返します。", html:sgCard("① 受け取るとき", `<ol class="sgsteps">${["排出事業者様が記載したマニフェスト（A〜E票）を、廃棄物と一緒に受け取る","伝票の「種類・量・荷姿」と、実物が合っているかを確認する","運搬担当者の欄に、氏名を記入する（受け取った証）","A票をはがして、排出事業者様に返す（A票は排出事業者様の控え）","残りのB1〜E票は、廃棄物と一緒に運ぶ"].map(x => `<li>${x}</li>`).join("")}</ol>`) });
+    S.push({ key:"mk:3", say:"処分する会社に届けたら、B1票とB2票に、運搬が終わった日と氏名を記入します。B2票は排出事業者様に返し、B1票は、関根商店の控えとして5年間保存します。", html:sgCard("② 運び終わったら", `<ol class="sgsteps">${["処分する会社に、廃棄物と一緒に、C1〜E票を渡す","B1票・B2票に、「運搬終了年月日」と運搬担当者の氏名を記入する","B2票は排出事業者様へ送る（運搬終了から10日以内）","B1票は関根商店の控え。事務所で5年間保管する"].map(x => `<li>${x}</li>`).join("")}</ol>`) });
+    S.push({ key:"mk:4", say:"処分が終わると、C2票が関根商店に戻ってきます。これも5年間保存します。記入を間違えたときは、二重線を引いて、書き直します。", html:sgCard("③ 事務所での処理", sgTiles([["📮","C2票が戻ってくる","処分が終わった証。5年間保管"],["🗄","B1票・C2票は5年保管","手順書07"],["✏️","記入を間違えたとき","二重線で消して、書き直す（会社の決まりに従う）"],["❓","わからないときは事務所へ","勝手に書き換えない"]])) }); }
   if (k === "L_manual"){
-    const M = [["🏢","07","マニフェストの管理手順書","伝票の流れ・10日以内の返送・5年保管・6月の報告・電子は3日以内"],["🔩","09","産業廃棄物（金属）の排出の手順書","許可車両で運ぶ・密閉物を積まない・ロープやガッチャで固定"],["🔊","12","騒音チェック","圧縮梱包機を月1回測る・昼70dB以下・振動は5年に1回"],["🚜","18","フォークリフトの手順書","ヘルメット・ツメに注意・社内10km/h・月次点検"],["🔋","34","電池類の回収・出荷","端子にテープ・種類ごとに分ける・金属と混ぜない"],["🛢","緊-01","油漏れ","吸着マットで止める・すぐ報告・広げない"],["🪨","緊-02","飛散・落下","ワイヤーとロープで固定"],["🌏","緊-03","地震","頭を守る・あわてて出ない・大型駐車場へ"],["🌀","緊-04","風水害","外に出ない・雷はクレーンを止める・伝言ダイヤル171"],["🔥","緊-05","火災","「火事だ！」・初期消火・人命第一・119"],["📞","緊-07","緊急時連絡体制","連絡先一覧・時間外は役員携帯"],["🌡","緊-08","気象変動","豪雨・強風・猛暑・大雪の手順"]];
-    S.push({ key:"lmn:1", say:"環境手順書は、仕事のやり方を決めた本だよ。50冊以上あるけど、まずはこの12冊を覚えよう。カードの本物の手順書ボタンで、中身も読めるよ。", html:sgCard("📘 まず覚えたい手順書", `<div class="sgcat">${M.map((x, i) => `<div style="animation-delay:${i*.05}s"><b>${x[0]} ${x[1]}　${x[2]}</b><span>${x[3]}</span></div>`).join("")}</div>`), btns:[["manuals","📘 手順書の一覧"],["pdf:07","📄 07 マニフェスト"],["pdf:18","📄 18 フォークリフト"]] });  sgDisScenes(D).forEach(x => S.push(x)); }
+    const M = [["🏢","07","マニフェストの管理手順書","伝票の流れ・10日以内の返送・5年保管・6月の報告・電子は3日以内"],["🔩","09","産業廃棄物（金属）の排出の手順書","許可車両で運ぶ・密閉物を積まない・ロープやラッシングベルトで固定"],["🔊","12","騒音チェック","圧縮梱包機を月1回測る・昼70dB以下・振動は5年に1回"],["🚜","18","フォークリフトの手順書","ヘルメット・ツメに注意・社内10km/h・月次点検"],["🔋","34","電池類の回収・出荷","端子にテープ・種類ごとに分ける・金属と混ぜない"],["🛢","緊-01","油漏れ","吸着マットで止める・すぐ報告・広げない"],["🪨","緊-02","飛散・落下","ワイヤーとロープで固定"],["🌏","緊-03","地震","頭を守る・あわてて外に出ない・大型駐車場へ"],["🌀","緊-04","風水害","外に出ない・雷はクレーンを止める・伝言ダイヤル171"],["🔥","緊-05","火災","大声で知らせる・初期消火・人命第一・119"],["📞","緊-07","緊急時連絡体制","連絡先一覧・時間外は役員携帯"],["🌡","緊-08","気象変動","豪雨・強風・猛暑・大雪の手順"]];
+    S.push({ key:"lmn:1", say:"環境手順書は、仕事のやり方を定めた文書です。50冊以上ありますが、まずは、この12冊を覚えてください。カードの手順書ボタンから、中身も読めます。", html:sgCard("📘 まず覚えたい手順書", `<div class="sgcat">${M.map((x, i) => `<div style="animation-delay:${i*.05}s"><b>${x[0]} ${x[1]}　${x[2]}</b><span>${x[3]}</span></div>`).join("")}</div>`), btns:[["manuals","📘 手順書の一覧"],["pdf:07","📄 07 マニフェスト"],["pdf:18","📄 18 フォークリフト"]] });  sgDisScenes(D).forEach(x => S.push(x)); }
   if (k === "L_dis"){ sgDisScenes(D).forEach(s => S.push(s)); }
   if (k === "L_dispose"){
     const W = lesDisp();
