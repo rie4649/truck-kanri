@@ -673,7 +673,7 @@
 </head>
 <body>
 <header>
-  <h1>🚚 トラック管理 <span class="ver" id="appVerTxt" title="アプリの版">版 8.7</span></h1>
+  <h1>🚚 トラック管理 <span class="ver" id="appVerTxt" title="アプリの版">版 8.8</span></h1>
   <button id="installBtn" hidden>📲 ホーム画面に追加</button>
   <div class="sub">TRUCK ・ 車両カルテと置き場の配置図</div>
   <div class="tab-bar">
@@ -931,6 +931,8 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://rie4649.github.io/sekine-store/sekine-auth.js?v=1"></script>
 <script>
 /* ===== Firebase読み取り節約(通信の自動休止・再開) 2026-10 =====
    ・画面が見えていない(別タブ・最小化・スマホのスリープ)状態が5分続いたら、リアルタイム監視を止めます
@@ -1039,7 +1041,7 @@
 
 <script>
 /* ===== アプリの版（直すたびに上げる。画面の上と印刷に出る） ===== */
-const APP_VER = "8.7", APP_VER_DATE = "2026年11月19日"; try { document.getElementById("appVerTxt").textContent = "版 " + APP_VER; } catch(e){}
+const APP_VER = "8.8", APP_VER_DATE = "2026年11月20日"; try { document.getElementById("appVerTxt").textContent = "版 " + APP_VER; } catch(e){}
 /* ===== Firebase ===== */
 firebase.initializeApp({
   apiKey: "AIzaSyD99Mx0MnGpLSQjV7830bS7-gdCBSM9DGY",
@@ -1052,7 +1054,7 @@ const FV = firebase.firestore.FieldValue;
 const LAYOUT = db.collection("truck_parking").doc("layout");   // 配置の保存先(1ドキュメントに全部)
 
 // 点検ラクラクは別のFirebase(Realtime Database)。読むだけ
-let tenkenDB = null;
+let tenkenDB = null, tenkenAuthReady = Promise.resolve();
 try {
   const tk = firebase.initializeApp({
     apiKey:"AIzaSyA1GSV7KX6qMbIFIFz2ZhPNBVksiGxanKA",
@@ -1062,6 +1064,12 @@ try {
     appId:"1:546571524606:web:dbe38f12c4b6ab4ad148af"
   }, "tenken");
   tenkenDB = tk.database();
+  // 点検ラクラクは「ログインした人だけ」読めるので、裏で匿名ログインしてから読む
+  const au = tk.auth();
+  tenkenAuthReady = Promise.race([
+    new Promise(r => { const un = au.onAuthStateChanged(u => { un(); r(u); }); }).then(u => u || au.signInAnonymously()),
+    new Promise(r => setTimeout(r, 8000))
+  ]).catch(e => console.warn("点検ラクラクに匿名ログインできませんでした", e && e.code));
 } catch(e){ console.error("点検ラクラクにつなげません", e); }
 
 /* ===== 置き場の形（航空写真をなぞった図。座標は写真のピクセル）。ppm = 1mあたりのピクセル
@@ -1275,7 +1283,7 @@ function tkLoadMonth(y, m){
   if (tkMonths[tag]) return tkMonths[tag];
   if (!tenkenDB) return Promise.resolve({});
   const prefix = "tenken_"+y+"_"+m+"_";
-  tkMonths[tag] = tenkenDB.ref("tenkenData").orderByKey().startAt(prefix).endAt(prefix+"").once("value").then(s => s.val() || {}).catch(e => { console.error(e); delete tkMonths[tag]; return {}; });
+  tkMonths[tag] = tenkenAuthReady.then(() => tenkenDB.ref("tenkenData").orderByKey().startAt(prefix).endAt(prefix+"").once("value").then(s => s.val() || {}).catch(e => { console.error(e); delete tkMonths[tag]; return {}; }));
   return tkMonths[tag];
 }
 
