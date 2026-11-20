@@ -673,7 +673,7 @@
 </head>
 <body>
 <header>
-  <h1>🚚 トラック管理 <span class="ver" id="appVerTxt" title="アプリの版">版 8.9</span></h1>
+  <h1>🚚 トラック管理 <span class="ver" id="appVerTxt" title="アプリの版">版 9.0</span></h1>
   <button id="installBtn" hidden>📲 ホーム画面に追加</button>
   <div class="sub">TRUCK ・ 車両カルテと置き場の配置図</div>
   <div class="tab-bar">
@@ -1041,7 +1041,7 @@
 
 <script>
 /* ===== アプリの版（直すたびに上げる。画面の上と印刷に出る） ===== */
-const APP_VER = "8.9", APP_VER_DATE = "2026年11月20日"; try { document.getElementById("appVerTxt").textContent = "版 " + APP_VER; } catch(e){}
+const APP_VER = "9.0", APP_VER_DATE = "2026年11月20日"; try { document.getElementById("appVerTxt").textContent = "版 " + APP_VER; } catch(e){}
 /* ===== Firebase ===== */
 firebase.initializeApp({
   apiKey: "AIzaSyD99Mx0MnGpLSQjV7830bS7-gdCBSM9DGY",
@@ -3566,9 +3566,9 @@ async function sgScenes(ch){ const [D, X] = await Promise.all([isoLoad(), ch ===
       S.push({ say: T.length ? `非常時に落ち着いて行動できるよう、訓練も行っています。直近では、「${String(T[0].theme || "").replace(/（[^）]*）/g, "")}」の訓練を行いました。` : "非常時に落ち着いて行動できるよう、毎年、緊急事態の訓練を行っています。",
         html:sgCard("🔥 防災・火災の訓練", T.length ? `<div class="sgtl">${T.slice(0, 5).map((x, i) => `<div style="animation:sgIn .4s ${i*.1}s ease-out both"><b>${sgJa(x.date)}</b><span>${x.kind === "test" ? "🚨 定期テスト：" : "🎓 "}${esc(x.theme || "")}</span></div>`).join("")}</div>` : `<div class="sgbiz"><div><span>🚨</span>緊急事態の訓練（年1回）</div><div><span>🔋</span>リチウムイオン電池の発火</div><div><span>🌏</span>地震を想定した点検</div></div>`, ), btns:[["drill","🔥 訓練の記録をぜんぶ"],["train","🎓 教育訓練"]] }); }
       /* 版8.9：リチウムイオン電池の発火訓練を、くわしく紹介（記録と、手順書34・緊-05・緊-07の内容から） */
-      { const B = D.tr.filter(x => /リチウム|電池/.test(x.theme || "")).sort((a, b) => String(b.date).localeCompare(String(a.date))), b0 = B[0];
-        S.push({ key:"dr:li", say:"リチウムイオン電池の発火を想定した訓練を、行っています。リチウムイオン電池は、強い衝撃や、ショートで、発熱し、発火するおそれがあります。回収した電池が、火元にならないよう、取り扱いの手順と、発火したときの動きを、確認しています。" + (b0 ? `直近の訓練は、${sgJa(b0.date)}に行いました。` : ""),
-          html:sgCard("🔋 リチウムイオン電池の発火訓練", (b0 ? `<div class="sgtl">${B.slice(0, 3).map((x, i) => `<div style="animation:sgIn .4s ${i*.1}s ease-out both"><b>${sgJa(x.date)}</b><span>${x.kind === "test" ? "🚨 定期テスト：" : "🎓 "}${esc(x.theme || "")}${x.manualLabel ? `（手順書：${esc(x.manualLabel)}）` : ""}${x.testResult === "ok" ? "　✅ うまくできた" : x.testResult === "ng" ? "　📝 見直しあり" : ""}</span></div>`).join("")}</div>` : "") + sgTiles([["⚠️","なぜ訓練するのか","衝撃やショートで発熱し、発火するおそれがある"],["🔋","ふだんの取り扱い（手順書34）","端子にテープを貼る・種類ごとに分ける・金属と混ぜない"],["🔥","発火したときの動き（緊-05）","大声で知らせる・初期消火・人命第一・119"],["📞","連絡（緊-07）","緊急時連絡先一覧で連絡・時間外は役員の携帯"]])), btns:[["pdf:34","📄 34 電池類の回収・出荷"],["pdf:緊-05","📄 緊-05 火災"],["drill","🔥 訓練の記録をぜんぶ"]] }); }
+      { const B = D.tr.filter(x => /リチウム|電池/.test(x.theme || "")).sort((a, b) => String(b.date).localeCompare(String(a.date))), b0 = B[0];   /* 版9.0：訓練の記録（想定・流れ・結果）をそのまま紹介する */
+        S.push({ key:"dr:li", say:"直近の訓練は、リチウムイオン電池の発火です。" + (b0 ? `${sgJa(b0.date)}に行いました。` : "") + "想定は、回収した家電に混じっていたモバイルバッテリーが、荷降ろしで潰れて出火した、というものです。約30分で、実際に火はつけずに行いました。発見者が知らせ、事務所と119番へ連絡し、消火器で消してから、水で冷やします。最後に、全員が集まって、人数を確認しました。消火を始めるまでの時間は、1分0秒でした。",
+          html:sgCard("🔋 リチウムイオン電池の発火訓練", (b0 ? `<div class="sgtl">${B.slice(0, 2).map((x, i) => `<div style="animation:sgIn .4s ${i*.1}s ease-out both"><b>${sgJa(x.date)}</b><span>${x.kind === "test" ? "🚨 定期テスト：" : "🎓 "}${esc(x.theme || "")}</span></div>`).join("")}</div>` : "") + sgTiles([["🎬","想定","回収した家電に混じっていたモバイルバッテリーが、荷降ろしで潰れて出火した"],["🧯","当日の流れ（約30分・火はつけない）","発見者が知らせる → 事務所・119番へ連絡（模擬）→ 消火器で消す → 水で冷やす → 全員が集まり人数確認"],["⏱","消火までの時間","3分以内の目標に対し、1分0秒で消火を始めた"],["📋","確認した項目","訓練前の点検5項目（端子のテープ・種類ごとの保管・金属くずから離す・消火器・冷やす水と鉄の容器）と、訓練中の行動5項目"]])), btns:[["pdf:34","📄 34 電池類の回収・出荷"],["pdf:緊-05","📄 緊-05 火災"],["drill","🔥 訓練の記録をぜんぶ"]] }); }
     S.push({ say:"火災が起きたときの、避難のしかたをご紹介します。", html:sgCard("🔥 もしも火事になったら", `<div class="sgbiz"><div><span>📢</span>大きな声で知らせる</div><div><span>🧯</span>近くの消火器で初期消火</div><div><span>🏃</span>避難経路で大型駐車場（集合場所）へ</div><div><span>🙋</span>全員がそろっているか点呼</div></div>`) });
     S.push({ evac:true });
     S.push({ say:"全員が、大型駐車場に集合し、点呼を行います。ふだんから訓練を行っているため、落ち着いて行動できます。", html:sgCard("✅ 避難の完了", `<div class="sgbiz"><div><span>🙋</span>点呼で全員の無事を確認</div><div style="animation-delay:.12s"><span>📞</span>緊急時連絡体制で知らせる</div><div style="animation-delay:.24s"><span>📝</span>訓練のあとは手順書を見直す</div></div>`), btns:[["drill","🔥 訓練の記録"]] });
