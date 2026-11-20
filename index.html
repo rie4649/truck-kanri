@@ -673,7 +673,7 @@
 </head>
 <body>
 <header>
-  <h1>🚚 トラック管理 <span class="ver" id="appVerTxt" title="アプリの版">版 8.8</span></h1>
+  <h1>🚚 トラック管理 <span class="ver" id="appVerTxt" title="アプリの版">版 8.9</span></h1>
   <button id="installBtn" hidden>📲 ホーム画面に追加</button>
   <div class="sub">TRUCK ・ 車両カルテと置き場の配置図</div>
   <div class="tab-bar">
@@ -1041,7 +1041,7 @@
 
 <script>
 /* ===== アプリの版（直すたびに上げる。画面の上と印刷に出る） ===== */
-const APP_VER = "8.8", APP_VER_DATE = "2026年11月20日"; try { document.getElementById("appVerTxt").textContent = "版 " + APP_VER; } catch(e){}
+const APP_VER = "8.9", APP_VER_DATE = "2026年11月20日"; try { document.getElementById("appVerTxt").textContent = "版 " + APP_VER; } catch(e){}
 /* ===== Firebase ===== */
 firebase.initializeApp({
   apiKey: "AIzaSyD99Mx0MnGpLSQjV7830bS7-gdCBSM9DGY",
@@ -3470,9 +3470,9 @@ async function sgScenes(ch){ const [D, X] = await Promise.all([isoLoad(), ch ===
   if (ch === "flow"){
     const st = [["🚛","運びこむ","お客さんの所から集めてくる"],["⚖️","計量","トラックスケールで重さを量る"],["🔎","選別","種類ごとに分ける"],["🗜","圧縮・ブリケット化","小さく、固くまとめる"],["🏭","出荷","資源として次の工場へ"]];
     S.push({ key:"fl:1", say:"関根商店に運ばれてきた物が、どのように処理されるかをご紹介します。", html:sgCard("♻️ 資源のゆくえ", `<div class="sgflow">${st.map((x, i) => `<div style="animation-delay:${i*.25}s"><span>${x[0]}</span><b>${x[1]}</b><small>${x[2]}</small></div>${i < st.length - 1 ? `<i style="animation-delay:${i*.25 + .12}s">➜</i>` : ""}`).join("")}</div>`) });
-    { const kp = (D.ph || []).filter(p => /ブリケット|鉄屑|切り粉|切粉|ダライ/.test(Object.keys(p).filter(k => !/thumb|url|data|id$/i.test(k) && typeof p[k] === "string").map(k => p[k]).join(" "))).filter(p => p.thumb).slice(0, 4);   /* 版8.7：図のかわりに、ISO管理の写真を使う */
-      const cap = p => String(p.title || p.name || p.caption || p.memo || p.targetName || "").trim();
-      S.push({ say:"金属の切り粉は、圧縮して固め、ブリケットにします。ブリケットは、鋳物の原料として、再び使われます。", html:sgCard("🔩 切り粉がもう一度、資源に", kp.length ? sgGal(kp.map(p => [p.thumb, esc(cap(p))])) + `<div class="sgok">切り粉（センダライ粉）➜ ブリケット ➜ 鋳物の原料</div>` : `<div class="sgflow"><div><span>🌀</span><b>切り粉（センダライ粉）</b><small>工場で出る金属のけずりくず</small></div><i>➜</i><div style="animation-delay:.3s"><span>🧱</span><b>ブリケット</b><small>圧縮して固める</small></div><i style="animation-delay:.4s">➜</i><div style="animation-delay:.6s"><span>🏭</span><b>鋳物の原料</b><small>もう一度、金属製品に</small></div></div>`) }); }
+    { const kp = (D.ph || []).filter(p => /ブリケット/.test(Object.keys(p).filter(k => !/thumb|url|data|id$/i.test(k) && typeof p[k] === "string").map(k => p[k]).join(" "))).filter(p => p.thumb).slice(0, 4);   /* 版8.7：図のかわりに、ISO管理の写真を使う */
+      const cap = p => { const t = String(p.title || p.name || p.caption || p.memo || p.targetName || "").trim(); return /ブリケット(圧縮機|マシン)/.test(t) ? "ブリケットマシン" : t; };
+      S.push({ say:"金属の切り粉は、ブリケットマシンで圧縮して固め、ブリケットにします。ブリケットは、鋳物の原料として出荷します。", html:sgCard("🔩 切り粉がもう一度、資源に", kp.length ? sgGal(kp.map(p => [p.thumb, esc(cap(p))])) + `<div class="sgok">切り粉（センダライ粉）➜ ブリケット ➜ 出荷</div>` : `<div class="sgflow"><div><span>🌀</span><b>切り粉（センダライ粉）</b><small>工場で出る金属のけずりくず</small></div><i>➜</i><div style="animation-delay:.3s"><span>🧱</span><b>ブリケット</b><small>圧縮して固める</small></div><i style="animation-delay:.4s">➜</i><div style="animation-delay:.6s"><span>🏭</span><b>出荷</b><small>鋳物の原料として</small></div></div>`) }); }
     const pv = D.pm.filter(v => v.biz === "mid" || !v.biz).sort((a, b) => String(b.startDate || "").localeCompare(String(a.startDate || "")) || (b.createdMs || 0) - (a.createdMs || 0));
     const pc = pv.find(v => !v.startDate || v.startDate <= sgYmd()) || pv[pv.length - 1], fc = ((pc && pc.facilities) || []).filter(x => x.type || x.capacity);
     { const ys = [...new Set(D.vol.flatMap(i => Object.keys(i.y || {}).filter(y => i.y[y] != null && i.y[y] !== "")))].sort(), ly = ys[ys.length - 1];
@@ -3493,20 +3493,20 @@ async function sgScenes(ch){ const [D, X] = await Promise.all([isoLoad(), ch ===
     const USE = [
       { k:"kei", ic:"🚙", t:"軽自動車", re:/軽自動車|軽貨物|軽トラ/, skip:true },
       { k:"hiab", ic:"✋", t:"ヒアブ（つかむクレーン付き）", re:/ヒアブ|HIAB/i, d:"つかんだり、つぶしたりと、手のような動きができるクレーンを備えたトラックです。スクラップや廃材をつかんで積み込むときや、大きな物をつぶして小さくするときに使います。", w:[["✋","つかむ","手のように、荷をつかんで持ち上げる"],["🗜","つぶす","大きな物を、つぶして小さくする"],["🔩","スクラップ・廃材の積み込み","つかんで、荷台へ積む"]], always:true },
-      { k:"self", ic:"🚜", t:"セルフローダー", re:/セルフ/, d:"荷台が斜めに下がり、機械や車を、そのまま積み込めるトラックです。自走できない機械や、故障した車を運ぶときに使います。", w:[["🚜","機械や車を、そのまま積む","荷台が斜めに下がり、自分で乗せられる"],["🛠","故障した車・機械の運搬",""]] },
-      { k:"unic", ic:"🏗", t:"ユニック（クレーン付きトラック）", re:/ユニック|UNIC|クレーン/i, d:"荷台にクレーンを備えたトラックです。重い機械や資材を、クレーンで持ち上げて、積み降ろしするときに使います。機械の移動や、据え付けの作業を行います。", w:[["🏗","クレーンで積み降ろし","重い機械や資材を、持ち上げて載せる・降ろす"],["🔧","機械の移動・据え付け","工場の機械を、運び出し、運び入れる"]], always:true },
+      { k:"self", ic:"🚜", t:"セルフローダー", re:/セルフ/, d:"荷台が斜めに下がり、機械や車を、そのまま積み込めるトラックです。", w:[] },
       { k:"dump", ic:"⛰", t:"ダンプ", re:/ダンプ/, d:"荷台を傾けて、積んだ物を、一度に降ろせるトラックです。土砂や、がれきなどを運ぶときに使います。", w:[["⛰","土砂・がれきの運搬","荷台を傾けて、一度に降ろす"]] },
       { k:"pack", ic:"🗑", t:"パッカー車（塵芥車）", re:/パッカー|塵芥/, d:"廃棄物を押し込みながら積む、収集用のトラックです。多くの量を、まとめて運ぶことができます。", w:[["🗑","廃棄物の収集","押し込んで、たくさん積む"]] },
       { k:"cont", ic:"📦", t:"コンテナ専用車（着脱装置付）", re:/コンテナ|着脱/, d:"荷台のコンテナを、車から切り離して、積み降ろしできるトラックです。現場にコンテナを置き、いっぱいになったら、入れ替えて運びます。", w:[["📦","コンテナの入れ替え","現場に置いて、いっぱいになったら交換する"]] },
-      { k:"std", ic:"🚛", t:"一般のトラック", re:/./, d:"荷台に、スクラップや資材、機械などを積んで運ぶ、基本のトラックです。運ぶ物や、行き先に合わせて、使い分けています。", w:[["📦","荷物の運搬","スクラップ・資材・機械などを、荷台に積んで運ぶ"]] }];
+      { k:"std", ic:"🏗", t:"ユニック付きトラック", re:/./, d:"荷台にクレーンを備えたトラックです。重い機械や資材を、クレーンで持ち上げて、積み降ろしするときに使います。機械の移動や、据え付けの作業に使います。", w:[], always:true }];
     const useOf = v => { const tx = ["nickname", "model", "katashiki", "name", "kind"].map(k => typeof v[k] === "string" ? v[k] : "").join(" "); return USE.find(u => u.re.test(tx)) || USE[USE.length - 1]; };
     const G = {}; D.vs.forEach(v => { const u = useOf(v); (G[u.k] = G[u.k] || []).push(v); });
     const hp = !D.vs.length, tot = hp ? 36 : D.vs.length, main = x => (D.ph.filter(p => p.targetId === x).sort((a, b) => (b.isMain ? 1 : 0) - (a.isMain ? 1 : 0))[0] || {}).thumb;
-    const shown = USE.filter(u => !u.skip && ((G[u.k] || []).length || u.always));
+    const shown = USE.filter(u => !u.skip && ((G[u.k] || []).length || u.always)).sort((a, b) => (b.k === "std") - (a.k === "std"));
     const vph = D.vs.filter(v => !useOf(v).skip).map(v => ({ n:nm(v), t:main(v.id) })).filter(x => x.t).slice(0, 8);
     S.push({ say:`トラックや車は、全部で${tot}台あります。` + (hp ? "" : `仕事の内容に合わせて、${shown.filter(u => (G[u.k] || []).length).map(u => u.t.replace(/（.*）/, "")).join("、")}などを、使い分けています。`), html:sgCard(`🚛 車両 ${tot}台${hp ? "（ホームページより）" : ""}`, (hp ? "" : `<div class="sgnums">${shown.filter(u => (G[u.k] || []).length).slice(0, 6).map((u, i) => sgN(u.ic, esc(u.t.replace(/（.*）/, "")), (G[u.k] || []).length, "台", "", i*.08)).join("")}</div>`) + (vph.length ? `<div class="sgph">${vph.map(x => `<figure><img src="${x.t}" alt=""><figcaption>${esc(x.n)}</figcaption></figure>`).join("")}</div>` : "")), btns: D.vs.length ? [["veh","🚛 車両の一覧"]] : null });
-    if (!hp) shown.forEach(u => { const L = G[u.k] || [], vp = L.map(v => ({ n:nm(v), t:main(v.id) })).filter(x => x.t).slice(0, 6);
-      S.push({ key:"eq:use:" + u.k, say:(L.length ? `${u.t.replace(/（.*）/, "")}は、${L.length}台あります。` : "") + u.d, html:sgCard(`${u.ic} ${esc(u.t)}`, `<div class="sgok">${esc(u.d)}</div><div style="margin-top:10px;">${sgTiles(u.w)}</div>${L.length ? `<div class="sgnums" style="margin-top:10px;">${sgN("🚛", "台数", L.length, "台")}</div>` : ""}${vp.length ? `<div class="sgph">${vp.map(x => `<figure><img src="${x.t}" alt=""><figcaption>${esc(x.n)}</figcaption></figure>`).join("")}</div>` : ""}`), btns:[["veh","🚛 車両の一覧"]] }); });
+    if (!hp){   /* 版8.9：車の使い方は、1ページにまとめて紹介する */
+      const cn = u => u.t.replace(/（.*）/, ""), ct = u => (G[u.k] || []).length;
+      S.push({ key:"eq:use", say:"トラックは、作業の内容に合わせて、使い分けています。" + shown.map(u => `${cn(u)}は、${u.d}`).join(""), html:sgCard("🚛 トラックの使い方", `<div class="sgcat">${shown.map((u, i) => `<div style="animation-delay:${i*.06}s"><b>${u.ic} ${esc(cn(u))}${ct(u) ? "　" + ct(u) + "台" : ""}</b><span>${esc(u.d)}</span></div>`).join("")}</div>`), btns:[["veh","🚛 車両の一覧"]] }); }
     if (!hp){   /* 全車両の写真を、12台ずつ（仕事の種類の順） */
       const od = Object.fromEntries(USE.map((u, i) => [u.k, i])), PG = 12, AV = D.vs.slice().sort((a, b) => (od[useOf(a).k] - od[useOf(b).k]) || nm(a).localeCompare(nm(b), "ja", { numeric:true })), np = Math.ceil(AV.length / PG);
       for (let i = 0; i < np; i++){ const part = AV.slice(i * PG, i * PG + PG);
@@ -3531,8 +3531,8 @@ async function sgScenes(ch){ const [D, X] = await Promise.all([isoLoad(), ch ===
     const act = D.ros.filter(r => r.name && !(r.leaveDate && r.leaveDate < sgYmd()) && (D.pf.employeesCountOfficers !== false || r.kind !== "役員")), base = act.length ? act : D.emps.filter(e => e.name);
     const hold = base.filter(r => qBy[nn(r.name)]);
     if (hold.length){ const cnt = {}; hold.forEach(r => qBy[nn(r.name)].forEach(q => { const k = String(typeof q === "object" ? (q.name || q.title || "") : q).trim(); if (k) cnt[k] = (cnt[k] || 0) + 1; }));
-      const top = Object.keys(cnt).sort((a, b) => cnt[b] - cnt[a]).slice(0, 6);
-      S.push({ say:`資格を持っている人は、${base.length}人のうち${hold.length}人です。`, html:sgCard("🎓 資格を持つ人", `<div class="sgnums">${sgN("🎓","有資格者",hold.length,"名",`従業員 ${base.length}名中`)}${top.map((k, i) => sgN("🪪", esc(k), cnt[k], "名", "", (i+1)*.08)).join("")}</div>`) }); }
+      const top = Object.keys(cnt).sort((a, b) => cnt[b] - cnt[a]).slice(0, 12);   /* 版8.9：「こんな資格を持つ人がいる」という紹介 */
+      S.push({ say:`社内には、さまざまな資格を持つ人がいます。たとえば、${top.slice(0, 5).join("、")}などです。従業員${base.length}名のうち、${hold.length}名が、資格を持っています。`, html:sgCard("🎓 こんな資格を持つ人がいます", `<div class="sgnums">${top.map((k, i) => sgN("🪪", esc(k), cnt[k], "名", "", i*.06)).join("")}</div><div style="text-align:right;font-size:12px;color:#64748b;margin-top:8px;">従業員 ${base.length}名のうち、${hold.length}名が資格を保有</div>`) }); }
     const aw = D.h.filter(x => /表彰|優良法人|認定|推進事業登録|宣言|感謝状/.test(x.text || ""));
     if (aw.length) S.push({ say:"日ごろの取り組みが認められ、表彰や認定をいただいています。" + aw.slice(-2).map(x => String(x.text || "").replace(/（[^）]*）|\([^)]*\)/g, "")).join("、") + "。", html:sgCard("🏆 表彰・認定", `<div class="sgtl">${aw.map((x, i) => `<div style="animation:sgIn .4s ${i*.1}s ease-out both"><b>${esc(x.date || "")}</b><span>🏆 ${esc(x.text || "")}</span></div>`).join("")}</div>`), btns:[["history","📜 沿革をぜんぶ見る"]] });
   }
@@ -3565,6 +3565,10 @@ async function sgScenes(ch){ const [D, X] = await Promise.all([isoLoad(), ch ===
     { const T = D.tr.filter(x => x.kind === "test" || sgDrillRe.test(x.theme || "")).sort((a, b) => String(b.date).localeCompare(String(a.date)));
       S.push({ say: T.length ? `非常時に落ち着いて行動できるよう、訓練も行っています。直近では、「${String(T[0].theme || "").replace(/（[^）]*）/g, "")}」の訓練を行いました。` : "非常時に落ち着いて行動できるよう、毎年、緊急事態の訓練を行っています。",
         html:sgCard("🔥 防災・火災の訓練", T.length ? `<div class="sgtl">${T.slice(0, 5).map((x, i) => `<div style="animation:sgIn .4s ${i*.1}s ease-out both"><b>${sgJa(x.date)}</b><span>${x.kind === "test" ? "🚨 定期テスト：" : "🎓 "}${esc(x.theme || "")}</span></div>`).join("")}</div>` : `<div class="sgbiz"><div><span>🚨</span>緊急事態の訓練（年1回）</div><div><span>🔋</span>リチウムイオン電池の発火</div><div><span>🌏</span>地震を想定した点検</div></div>`, ), btns:[["drill","🔥 訓練の記録をぜんぶ"],["train","🎓 教育訓練"]] }); }
+      /* 版8.9：リチウムイオン電池の発火訓練を、くわしく紹介（記録と、手順書34・緊-05・緊-07の内容から） */
+      { const B = D.tr.filter(x => /リチウム|電池/.test(x.theme || "")).sort((a, b) => String(b.date).localeCompare(String(a.date))), b0 = B[0];
+        S.push({ key:"dr:li", say:"リチウムイオン電池の発火を想定した訓練を、行っています。リチウムイオン電池は、強い衝撃や、ショートで、発熱し、発火するおそれがあります。回収した電池が、火元にならないよう、取り扱いの手順と、発火したときの動きを、確認しています。" + (b0 ? `直近の訓練は、${sgJa(b0.date)}に行いました。` : ""),
+          html:sgCard("🔋 リチウムイオン電池の発火訓練", (b0 ? `<div class="sgtl">${B.slice(0, 3).map((x, i) => `<div style="animation:sgIn .4s ${i*.1}s ease-out both"><b>${sgJa(x.date)}</b><span>${x.kind === "test" ? "🚨 定期テスト：" : "🎓 "}${esc(x.theme || "")}${x.manualLabel ? `（手順書：${esc(x.manualLabel)}）` : ""}${x.testResult === "ok" ? "　✅ うまくできた" : x.testResult === "ng" ? "　📝 見直しあり" : ""}</span></div>`).join("")}</div>` : "") + sgTiles([["⚠️","なぜ訓練するのか","衝撃やショートで発熱し、発火するおそれがある"],["🔋","ふだんの取り扱い（手順書34）","端子にテープを貼る・種類ごとに分ける・金属と混ぜない"],["🔥","発火したときの動き（緊-05）","大声で知らせる・初期消火・人命第一・119"],["📞","連絡（緊-07）","緊急時連絡先一覧で連絡・時間外は役員の携帯"]])), btns:[["pdf:34","📄 34 電池類の回収・出荷"],["pdf:緊-05","📄 緊-05 火災"],["drill","🔥 訓練の記録をぜんぶ"]] }); }
     S.push({ say:"火災が起きたときの、避難のしかたをご紹介します。", html:sgCard("🔥 もしも火事になったら", `<div class="sgbiz"><div><span>📢</span>大きな声で知らせる</div><div><span>🧯</span>近くの消火器で初期消火</div><div><span>🏃</span>避難経路で大型駐車場（集合場所）へ</div><div><span>🙋</span>全員がそろっているか点呼</div></div>`) });
     S.push({ evac:true });
     S.push({ say:"全員が、大型駐車場に集合し、点呼を行います。ふだんから訓練を行っているため、落ち着いて行動できます。", html:sgCard("✅ 避難の完了", `<div class="sgbiz"><div><span>🙋</span>点呼で全員の無事を確認</div><div style="animation-delay:.12s"><span>📞</span>緊急時連絡体制で知らせる</div><div style="animation-delay:.24s"><span>📝</span>訓練のあとは手順書を見直す</div></div>`), btns:[["drill","🔥 訓練の記録"]] });
@@ -3872,7 +3876,10 @@ function sgCompMap(){ const L = ext4(), e14 = L.find(e => e.no === 14) || { x:59
   return svg.outerHTML; }
 /* セリフを自由に直す（保存はみんなで共有） */
 function sgKeys(ch, S){ const seen = {}; S.forEach((s, i) => { if (s.evac) return; if (!s.key){ const m = String(s.html || "").match(/<h2>([^<]*)<\/h2>|<b>([^<]*)<\/b>/); s.key = ch + ":" + ((m && (m[1] || m[2])) || i); } if (seen[s.key]) s.key += "#" + (++seen[s.key]); else seen[s.key] = 1; s.orig = s.say; }); return S; }
-const sgSayOf = sc => { const o = (layout.sgSay || {})[sc.key]; return (o && o.trim()) ? o : sc.say; };
+/* 版8.9：保存してあるセリフに、子ども向けの言い方が残っていても、丁寧な言い方にそろえて話す・表示する */
+const SG_POLITE = [[/紹介するよ[。！!]?/g,"ご紹介します。"],[/なんだ[。！!]/g,"なのです。"],[/んだ[。！!]/g,"のです。"],[/ですよ[。！!]/g,"です。"],[/ますよ[。！!]/g,"ます。"],[/いるよ[。！!]/g,"います。"],[/するよ[。！!]/g,"します。"],[/できるよ[。！!]/g,"できます。"],[/したよ[。！!]/g,"しました。"],[/たよ[。！!]/g,"ました。"],[/だよ[。！!]/g,"です。"],[/だぞ[。！!]/g,"です。"],[/してね[。！!]/g,"してください。"],[/てね[。！!]/g,"てください。"],[/だね[。！!]/g,"です。"]];
+const sgPolite = t => { let x = String(t == null ? "" : t); SG_POLITE.forEach(([a, b]) => { x = x.replace(a, b); }); return x; };
+const sgSayOf = sc => { const o = (layout.sgSay || {})[sc.key]; return sgPolite((o && o.trim()) ? o : sc.say); };
 function sgEditOpen(){ const sc = SG.scenes[SG.si]; if (!sc || sc.evac) return; SG.play = false; sgStop(); $("sgPlay").textContent = "▶";
   $("sgEdIn").value = sgSayOf(sc); $("sgEdOrig").textContent = sc.orig || ""; $("sgEd").hidden = false; $("sgEdIn").focus(); }
 function sgEditSave(v){ const sc = SG.scenes[SG.si]; if (!sc) return; layout.sgSay = Object.assign({}, layout.sgSay || {}, { [sc.key]: v }); if (trial && sharedLayout) sharedLayout.sgSay = layout.sgSay;
