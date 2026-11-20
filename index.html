@@ -673,7 +673,7 @@
 </head>
 <body>
 <header>
-  <h1>🚚 トラック管理 <span class="ver" id="appVerTxt" title="アプリの版">版 9.0</span></h1>
+  <h1>🚚 トラック管理 <span class="ver" id="appVerTxt" title="アプリの版">版 9.1</span></h1>
   <button id="installBtn" hidden>📲 ホーム画面に追加</button>
   <div class="sub">TRUCK ・ 車両カルテと置き場の配置図</div>
   <div class="tab-bar">
@@ -1041,7 +1041,7 @@
 
 <script>
 /* ===== アプリの版（直すたびに上げる。画面の上と印刷に出る） ===== */
-const APP_VER = "9.0", APP_VER_DATE = "2026年11月20日"; try { document.getElementById("appVerTxt").textContent = "版 " + APP_VER; } catch(e){}
+const APP_VER = "9.1", APP_VER_DATE = "2026年11月20日"; try { document.getElementById("appVerTxt").textContent = "版 " + APP_VER; } catch(e){}
 /* ===== Firebase ===== */
 firebase.initializeApp({
   apiKey: "AIzaSyD99Mx0MnGpLSQjV7830bS7-gdCBSM9DGY",
@@ -3546,7 +3546,20 @@ async function sgScenes(ch){ const [D, X] = await Promise.all([isoLoad(), ch ===
     if (F.diesel != null) nums.push(sgN("⛽","軽油の使用量",sgNum(F.diesel),"%減","前の年の同じ時期とくらべて",.2));
     const bars = F.briRows ? `<div class="sgbars">${F.briRows.map(r => `<div><i style="height:${Math.round(Math.max(4, Math.min(100, r.v)) * 0.9)}px"></i><b>${sgNum(r.v)}%</b><span>${r.y-1}年度</span></div>`).join("")}</div>` : "";
     S.push({ say: F.bri != null ? `金属の切り粉を圧縮して固めるブリケット化についてです。${F.briY-1}年度は${sgNum(F.briLast)}パーセント、3年の平均は${sgNum(F.bri)}パーセントでした。` : "ISO14001に基づき、環境を適切に管理しています。", html:sgCard("🌏 環境の数字", `<div class="sgnums">${nums.join("")}</div>${bars}`) });
-    const gs = D.sg.filter(g => g.name); if (gs.length) S.push({ say:"SDGsの目標も定めて、取り組んでいます。", html:sgCard("🎯 SDGsの目標", `<div class="sgbiz">${gs.slice(0,6).map((g, i) => `<div style="animation-delay:${i*.1}s"><span>🎯</span>${esc(g.name)}${g.targetValue ? `<br><small>目標 ${esc(String(g.targetValue))}</small>` : ""}</div>`).join("")}</div>`) });
+    { const gs = D.sg.filter(g => g.name);   /* 版9.1：SDGsとは何か、17の目標のうち当社がどれに取り組んでいるかを、絵とともに紹介する（目標の説明は外務省仮訳） */
+      const GN = ["貧困をなくそう","飢餓をゼロに","すべての人に健康と福祉を","質の高い教育をみんなに","ジェンダー平等を実現しよう","安全な水とトイレを世界中に","エネルギーをみんなに そしてクリーンに","働きがいも経済成長も","産業と技術革新の基盤をつくろう","人や国の不平等をなくそう","住み続けられるまちづくりを","つくる責任 つかう責任","気候変動に具体的な対策を","海の豊かさを守ろう","陸の豊かさも守ろう","平和と公正をすべての人に","パートナーシップで目標を達成しよう"];
+      const GI = ["🏠","🌾","💗","📚","⚖️","🚰","💡","👷","🏭","🤝","🏘","♻️","🌍","🐟","🌳","🕊","🔗"];
+      const GD = { 8:["働きがいのある人間らしい仕事と、持続可能な経済成長を、すべての人に広げる。","8.5 若者や障害者を含むすべての人の、働きがいのある人間らしい仕事を達成する。","8.8 すべての労働者の権利を守り、安全・安心な労働環境を促進する。"], 11:["誰もが安全に、安心して住み続けられる、持続可能なまちをつくる。","11.6 廃棄物の管理に特に注意し、まちの環境への悪い影響を減らす。"], 12:["つくる量と使う量を見直し、資源を大切に使う。","12.2 天然資源を持続可能に管理し、効率よく利用する。","12.4 廃棄物の管理を適正に行い、環境への放出を大幅に減らす。","12.5 廃棄物の発生を、防止・削減・再生利用・再利用で大幅に減らす。"] };
+      const IC = { 8:"👷", 11:"🏘", 12:"♻️" };
+      const parsed = gs.map(g => { const nm = String(g.name); const m = nm.match(/目標\s*([0-9０-９]+)/); const no = m ? +String(m[1]).replace(/[０-９]/g, c => String.fromCharCode(c.charCodeAt(0) - 65248)) : 0; const parts = nm.split(/[|｜]/); return { no, act:(parts[1] || "").trim(), tv:g.targetValue, unit:g.unit || "" }; }).filter(x => x.no >= 1 && x.no <= 17);
+      const mine = new Set(parsed.map(x => x.no)), rel = new Set(F.diesel != null ? [13] : []);
+      const grid = `<div style="display:grid;grid-template-columns:repeat(6,1fr);gap:8px;">${GN.map((n, i) => `<div style="border-radius:12px;padding:8px 6px;text-align:center;font-size:12px;font-weight:800;line-height:1.3;background:${mine.has(i + 1) ? "#fff1e3" : rel.has(i + 1) ? "#e6f6f4" : "#f1f5f9"};border:3px solid ${mine.has(i + 1) ? "#e8590c" : rel.has(i + 1) ? "#0e7c86" : "transparent"};opacity:${mine.has(i + 1) || rel.has(i + 1) ? 1 : .55};"><div style="font-size:26px;">${GI[i]}</div>${i + 1}<br>${esc(n)}</div>`).join("")}</div><div style="margin-top:10px;font-size:13px;color:#475569;"><b style="color:#e8590c;">■ 取り組み中の目標</b>　${rel.size ? `<b style="color:#0e7c86;">■ 関連する目標</b>　` : ""}（絵は、目標のイメージです）</div>`;
+      S.push({ key:"sd:0", say:"SDGsとは、2030年までに達成を目指す、世界共通の17の目標です。" + (parsed.length ? `関根商店は、このうち、目標${parsed.map(x => x.no).join("、")}に取り組んでいます。` : "関根商店も、目標を定めて取り組んでいます。"), html:sgCard("🎯 SDGsとは　17の目標", grid) });
+      parsed.forEach(x => { const d = GD[x.no] || [], tvTxt = x.tv ? `目標値 ${esc(String(x.tv))}${esc(x.unit)}` : "";
+        S.push({ key:"sd:g" + x.no, say:`目標${x.no}は、「${GN[x.no - 1]}」です。` + (d[0] || "") + (x.act ? `関根商店では、${x.act}に取り組んでいます。` : ""),
+          html:sgCard(`${IC[x.no] || GI[x.no - 1]} 目標${x.no}　${esc(GN[x.no - 1])}`, sgTiles([["🎯","この目標とは", esc(d[0] || "")],["🏭","関根商店の取り組み", esc(x.act || "")].concat(tvTxt ? [] : []),["🔗","対応するターゲット", esc(d.slice(1).join(" ／ "))]].concat(tvTxt ? [["📈","目標", tvTxt]] : [])) + `<div class="sgok">出典：外務省仮訳「SDGsの17の目標と169のターゲット」</div>`) }); });
+      if (rel.has(13)) S.push({ key:"sd:g13", say:"目標13「気候変動に具体的な対策を」にも、関わっています。軽油の使用量を減らす取り組みが、二酸化炭素の削減につながります。", html:sgCard("🌍 関連する目標　13 気候変動に具体的な対策を", sgTiles([["🎯","この目標とは","気候変動と、その影響を軽減するための、緊急の対策を講じる。"],["⛽","関根商店の取り組み", `軽油の使用量を、前の年の同じ時期とくらべて${sgNum(F.diesel)}％減らしています。`]]) + `<div class="sgok">出典：外務省仮訳「SDGsの17の目標と169のターゲット」</div>`) });
+    }
     { const yr = String(new Date().getFullYear()), wy = D.wt.filter(x => String(x.date || "").startsWith(yr)).length ? yr : String(new Date().getFullYear() - 1);
       const wl = D.wt.filter(x => String(x.date || "").startsWith(wy)), phs = wl.map(x => x.ph).filter(x => x != null && x !== "" && !isNaN(x)).map(Number);
       const nl = D.nc.filter(x => String(x.date || "").startsWith(wy)), dbs = nl.map(x => x.db).filter(x => x != null && x !== "" && !isNaN(x)).map(Number);
@@ -3569,6 +3582,7 @@ async function sgScenes(ch){ const [D, X] = await Promise.all([isoLoad(), ch ===
       { const B = D.tr.filter(x => /リチウム|電池/.test(x.theme || "")).sort((a, b) => String(b.date).localeCompare(String(a.date))), b0 = B[0];   /* 版9.0：訓練の記録（想定・流れ・結果）をそのまま紹介する */
         S.push({ key:"dr:li", say:"直近の訓練は、リチウムイオン電池の発火です。" + (b0 ? `${sgJa(b0.date)}に行いました。` : "") + "想定は、回収した家電に混じっていたモバイルバッテリーが、荷降ろしで潰れて出火した、というものです。約30分で、実際に火はつけずに行いました。発見者が知らせ、事務所と119番へ連絡し、消火器で消してから、水で冷やします。最後に、全員が集まって、人数を確認しました。消火を始めるまでの時間は、1分0秒でした。",
           html:sgCard("🔋 リチウムイオン電池の発火訓練", (b0 ? `<div class="sgtl">${B.slice(0, 2).map((x, i) => `<div style="animation:sgIn .4s ${i*.1}s ease-out both"><b>${sgJa(x.date)}</b><span>${x.kind === "test" ? "🚨 定期テスト：" : "🎓 "}${esc(x.theme || "")}</span></div>`).join("")}</div>` : "") + sgTiles([["🎬","想定","回収した家電に混じっていたモバイルバッテリーが、荷降ろしで潰れて出火した"],["🧯","当日の流れ（約30分・火はつけない）","発見者が知らせる → 事務所・119番へ連絡（模擬）→ 消火器で消す → 水で冷やす → 全員が集まり人数確認"],["⏱","消火までの時間","3分以内の目標に対し、1分0秒で消火を始めた"],["📋","確認した項目","訓練前の点検5項目（端子のテープ・種類ごとの保管・金属くずから離す・消火器・冷やす水と鉄の容器）と、訓練中の行動5項目"]])), btns:[["pdf:34","📄 34 電池類の回収・出荷"],["pdf:緊-05","📄 緊-05 火災"],["drill","🔥 訓練の記録をぜんぶ"]] }); }
+        S.push({ key:"dr:li2", say:"勉強会の資料から、要点をご紹介します。発火のきっかけは、衝撃やつぶれ、ショート、過充電や高温、劣化や膨らみの、4つです。内部の仕切りが破れると、発熱し、ガスが出て膨らみ、発煙や発火に至ります。これを、熱暴走といいます。膨らんでいる電池や、落としたことのある電池、熱くなる電池は、特に危険です。", html:sgCard("🔋 勉強会より　なぜ発火するのか", sgTiles([["💥","きっかけは4つ","衝撃・つぶれ／ショート／過充電・高温／劣化・膨らみ"],["🔥","熱暴走","内部の仕切りが破れる → 発熱 → ガスが出て膨らむ → 発煙・発火。一度始まると止まりにくい"],["⚠️","危険なサイン","膨らんでいる・変形している／落としたことがある／充電中や使用中に熱くなる"],["🛡","予防","端子にテープ・種類ごとに分ける・金属くずや燃える物から離す・鉄の容器に入れる"]]) + `<div class="sgok">出典：環境省、東京消防庁の資料、当社 環境手順書34・緊-05</div>`) });
     S.push({ say:"火災が起きたときの、避難のしかたをご紹介します。", html:sgCard("🔥 もしも火事になったら", `<div class="sgbiz"><div><span>📢</span>大きな声で知らせる</div><div><span>🧯</span>近くの消火器で初期消火</div><div><span>🏃</span>避難経路で大型駐車場（集合場所）へ</div><div><span>🙋</span>全員がそろっているか点呼</div></div>`) });
     S.push({ evac:true });
     S.push({ say:"全員が、大型駐車場に集合し、点呼を行います。ふだんから訓練を行っているため、落ち着いて行動できます。", html:sgCard("✅ 避難の完了", `<div class="sgbiz"><div><span>🙋</span>点呼で全員の無事を確認</div><div style="animation-delay:.12s"><span>📞</span>緊急時連絡体制で知らせる</div><div style="animation-delay:.24s"><span>📝</span>訓練のあとは手順書を見直す</div></div>`), btns:[["drill","🔥 訓練の記録"]] });
@@ -4721,6 +4735,8 @@ function paneDir(lot, body, foot){
         save({ assign:as }, `${cars.length}台入れました`);
       }
       draft.cars = []; editRowId = null; step = "rows";
+    S.push({ key:"tw:2", say:"地域への貢献は、ほかにもあります。社会福祉活動として、使用済み切手や、タオル、飲み物などを寄贈しています。また、映画『サマーウォーズ』で知られるようになった、上田市の砥石城まつりにも、協賛金を贈り、進んで貢献しています。熊本地震の義援金も、お届けしました。", html:sgCard("🤝 地域への貢献", sgTiles([["🌿","草刈り・環境美化","しなの木通りの草刈り・上小地区環境美化活動"],["🧣","社会福祉活動","使用済み切手、タオル、飲み物などの寄贈"],["🏯","砥石城まつり協賛金","上田市のまつりを支える協賛金を、進んで贈っています"],["🎗","義援金","令和8年熊本地震復旧・復興義援金"]]))
+      , btns:[["acts","🌿 活動の記録をぜんぶ"]] });
     } else { placing = true; selRow = null; step = "rows"; }
     render(); };
 }
