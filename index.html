@@ -673,7 +673,7 @@
 </head>
 <body>
 <header>
-  <h1>🚚 トラック管理 <span class="ver" id="appVerTxt" title="アプリの版">版 9.2</span></h1>
+  <h1>🚚 トラック管理 <span class="ver" id="appVerTxt" title="アプリの版">版 9.3</span></h1>
   <button id="installBtn" hidden>📲 ホーム画面に追加</button>
   <div class="sub">TRUCK ・ 車両カルテと置き場の配置図</div>
   <div class="tab-bar">
@@ -2161,6 +2161,7 @@ function render(){
     const exact = measEdges(lot)[i] != null;
     const t = el("text",{x:mx,y:my+fs*0.35,"text-anchor":"middle","font-size":fs,"font-weight":800,fill:exact?"#c2410c":"#b3401f",stroke:"#fff","stroke-width":fs*0.3,style:"paint-order:stroke"},svg);
     t.textContent = exact ? (+measEdges(lot)[i]).toFixed(2) + "m" : "約" + Math.round(m) + "m"; });
+  drawEdgeHits(svg, lot, fs);
   svg.classList.toggle("keeping", !!keepMode);   // 通路を描く間は、車や線を押しても反応しない(地図のタップだけ)
   if (keepMode && keepMode.a){ el("circle",{cx:keepMode.a[0],cy:keepMode.a[1],r:fs*0.8,fill:"#facc15",stroke:"#713f12","stroke-width":fs*0.2},svg); }
   const lines = editMode && step === "lines" ? lineInfo(lot) : null;
@@ -2484,7 +2485,7 @@ function setOff(lot, i, v){
   pushUndo(); layout.calib = layout.calib || {}; const c = lotCalib(lot), E = measEdges(lot), be = baseEdge(lot);
   const off = Object.assign({}, (c && c.off) || {}); off[i] = v;   // 0 も残す(保存は足し合わせなので、消すと前の値が残るため)
   const cal = Object.assign({ edge: be, realM: E[be] || 0, edges: E }, c && c.bo ? { bo:c.bo } : {}, { off });
-  layout.calib[lot] = cal; render(); renderMeas();
+  layout.calib[lot] = cal; render(); if (!$("measSheet").hidden) renderMeas(); renderEdgeAdj();
   save({ calib:{ [lot]: cal } }, v ? `${edgeName(lot, i)}を${v > 0 ? "外" : "内"}へ ${Math.abs(v).toFixed(2)}m ずらしました` : `${edgeName(lot, i)}を写真の線にもどしました`);
 }
 function bindOff(lot){
@@ -2495,8 +2496,49 @@ function bindOff(lot){
     inp.onchange = () => { const v = inp.value === "" ? 0 : parseFloat(inp.value); if (!isFinite(v) || Math.abs(v) > 5){ toast("−5〜5m で入れてください"); return; } setOff(lot, +inp.dataset.ofin, v); }; });
   const oc = $("ofClear"); if (oc) oc.onclick = () => { if (guardLock()) return; pushUndo(); const c = lotCalib(lot) || {}, off = {};
     Object.keys(c.off || {}).forEach(i => off[i] = 0); const E = measEdges(lot), be = baseEdge(lot);
-    const cal = Object.assign({ edge: be, realM: E[be] || 0, edges: E }, c.bo ? { bo:c.bo } : {}, { off }); layout.calib[lot] = cal; render(); renderMeas();
+    const cal = Object.assign({ edge: be, realM: E[be] || 0, edges: E }, c.bo ? { bo:c.bo } : {}, { off }); layout.calib[lot] = cal; render(); if (!$("measSheet").hidden) renderMeas(); renderEdgeAdj();
     save({ calib:{ [lot]: cal } }, "敷地線を写真の線にもどしました"); };
+}
+/* 版9.3：地図の敷地線を押して、その線だけ外へ・内へずらす */
+let adjEdge = null, adjLot = null;
+function dir2(d){ const ax = Math.abs(d[0]), ay = Math.abs(d[1]), h = d[0] > 0 ? "右" : "左", v = d[1] > 0 ? "下" : "上";
+  return ax > ay * 2.2 ? h : ay > ax * 2.2 ? v : v + h; }   // 地図の上での向き(右下 など)
+function drawEdgeHits(svg, lot, fs){
+  const L = LOTS[lot]; if (adjEdge != null && adjLot !== lot) closeEdgeAdj(true);
+  if (L.drawing || photoOnly) return;
+  const P = L.lot, n = P.length, k = ppm(lot), O = edgeOffs(lot);
+  P.forEach((a, i) => { const b = P[(i+1) % n]; if (Math.hypot(b[0]-a[0], b[1]-a[1]) / k < 3) return;
+    if (O[i]) el("line",{x1:a[0],y1:a[1],x2:b[0],y2:b[1],stroke:"#2563eb","stroke-width":fs*0.35,"stroke-linecap":"round","stroke-dasharray":`${fs*0.8} ${fs*0.5}`,"pointer-events":"none"},svg);   // ずらしている線は青い点線
+    if (i === adjEdge){ const e = edgeInfo(lot, i), mx = (a[0]+b[0])/2, my = (a[1]+b[1])/2, ox = -e.n[0], oy = -e.n[1];
+      el("line",{x1:a[0],y1:a[1],x2:b[0],y2:b[1],stroke:"#06b6d4","stroke-width":fs*0.9,"stroke-linecap":"round",opacity:.9,"pointer-events":"none"},svg);
+      const tip = [mx + ox*fs*3.2, my + oy*fs*3.2], bs = [mx + ox*fs*0.8, my + oy*fs*0.8];
+      el("line",{x1:bs[0],y1:bs[1],x2:tip[0],y2:tip[1],stroke:"#0e7490","stroke-width":fs*0.35,"pointer-events":"none"},svg);
+      el("polygon",{points:[[tip[0]+ox*fs*0.9, tip[1]+oy*fs*0.9],[tip[0]-oy*fs*0.7, tip[1]+ox*fs*0.7],[tip[0]+oy*fs*0.7, tip[1]-ox*fs*0.7]].map(q => q.join(",")).join(" "),fill:"#0e7490","pointer-events":"none"},svg);
+      const t = el("text",{x:tip[0]+ox*fs*2.2,y:tip[1]+oy*fs*2.2+fs*0.35,"text-anchor":"middle","font-size":fs*1.05,"font-weight":900,fill:"#0e7490",stroke:"#fff","stroke-width":fs*0.3,style:"paint-order:stroke","pointer-events":"none"},svg); t.textContent = "外"; }
+    el("line",{x1:a[0],y1:a[1],x2:b[0],y2:b[1],stroke:"rgba(0,0,0,0)","stroke-width":fs*2.2,"stroke-linecap":"round","pointer-events":"stroke",style:"cursor:pointer","data-edgehit":i},svg);   // 押しやすい太さ(見えない)
+  });  if (adjEdge != null) renderEdgeAdj();
+}
+function edgeAdjBox(){ let b = $("edgeAdj"); if (b) return b;
+  b = document.createElement("div"); b.id = "edgeAdj"; b.hidden = true;
+  b.style.cssText = "position:fixed;left:50%;bottom:12px;transform:translateX(-50%);width:min(440px,calc(100vw - 20px));background:#fff;border:3px solid #06b6d4;border-radius:16px;box-shadow:0 10px 30px rgba(0,0,0,.25);padding:12px 14px;z-index:9000;font-size:15px;";
+  document.body.appendChild(b); return b; }
+function openEdgeAdj(i){ adjEdge = i; adjLot = curTab; render(); renderEdgeAdj(); }
+function closeEdgeAdj(quiet){ adjEdge = null; adjLot = null; const b = $("edgeAdj"); if (b) b.hidden = true; if (!quiet) render(); }
+function renderEdgeAdj(){
+  const b = $("edgeAdj"); if (adjEdge == null || adjLot !== curTab){ if (b) b.hidden = true; return; }
+  const lot = curTab, i = adjEdge, box = edgeAdjBox(), e = edgeInfo(lot, i), out = dir2([-e.n[0], -e.n[1]]), inn = dir2(e.n), v = edgeOffs(lot)[i] || 0, lk = isLocked(lot), oc = overCount(lot);
+  const btn = (d, t, col) => `<button data-eaop="${d}" style="flex:1;min-width:0;height:52px;border-radius:12px;border:2px solid ${col};background:#fff;color:${col};font-size:16px;font-weight:900;">${t}</button>`;
+  box.innerHTML = `<div style="display:flex;align-items:center;gap:8px;"><b style="flex:1;font-size:17px;">敷地線：${esc(edgeName(lot, i))}</b><button id="eaClose" style="height:36px;padding:0 12px;border-radius:10px;border:1px solid #cbd5e1;background:#f8fafc;font-weight:800;">とじる</button></div>
+    <div style="margin:6px 0 8px;color:#334155;font-weight:700;">地図で<b style="color:#0891b2;">水色</b>になっている線です。今は <b style="color:${v ? "#1d4ed8" : "#334155"};">${v ? `${v > 0 ? "外" : "内"}へ ${Math.abs(v).toFixed(2)}m ずらし中` : "写真の線のまま"}</b></div>
+    ${lk ? `<div style="color:#92400e;font-weight:800;">🔒 確定しているので動かせません</div>` : `
+    <div style="display:flex;gap:8px;margin-bottom:8px;">${btn("-0.5", `内へ 0.5m<br><small>（${inn}）</small>`, "#64748b")}${btn("-0.1", "内へ 0.1m", "#64748b")}${btn("0.1", "外へ 0.1m", "#0e7490")}${btn("0.5", `外へ 0.5m<br><small>（${out}）</small>`, "#0e7490")}</div>
+    <div style="display:flex;gap:8px;align-items:center;"><span style="font-weight:800;">ずらす長さ</span><input id="eaIn" type="number" inputmode="decimal" step="0.05" value="${v ? v : ""}" placeholder="0" style="width:90px;height:40px;font-size:17px;border:2px solid #cbd5e1;border-radius:10px;padding:0 8px;"><span>m（外＋／内−）</span>${v ? `<button data-eaop="x" style="margin-left:auto;height:40px;padding:0 10px;border-radius:10px;border:1px solid #cbd5e1;background:#f8fafc;font-weight:800;">もどす</button>` : ""}</div>`}
+    <div style="margin-top:8px;font-weight:900;color:${oc ? "#b91c1c" : "#15803d"};">${oc ? `⚠ はみ出している車 ${oc}台` : "✓ はみ出している車はありません"}</div>
+    <div style="margin-top:2px;color:#64748b;font-size:13px;">ほかの線を押すと、その線に切りかわります。車の大きさ・縮尺は変わりません。</div>`;
+  box.hidden = false;
+  $("eaClose").onclick = () => closeEdgeAdj();
+  box.querySelectorAll("[data-eaop]").forEach(x => x.onclick = () => { const d = x.dataset.eaop; setOff(lot, i, d === "x" ? 0 : (edgeOffs(lot)[i] || 0) + +d); });
+  const inp = $("eaIn"); if (inp) inp.onchange = () => { const nv = inp.value === "" ? 0 : parseFloat(inp.value); if (!isFinite(nv) || Math.abs(nv) > 5){ toast("−5〜5m で入れてください"); return; } setOff(lot, i, nv); };
 }
 function drawMeasMarks(svg, fs){
   if (measEdge == null || $("measSheet").hidden) return;
@@ -4466,6 +4508,7 @@ $("svg").addEventListener("click", e => {
     save(Object.assign({ rows:{ [id]: r } }, cars.length ? { assign:as } : {}), !fits ? "置き場からはみ出ています。矢印で動かしてください" : cars.length ? `白線を並べて、${cars.length}台入れました` : "白線を並べました");
     return;
   }
+  { const eh = e.target && e.target.dataset && e.target.dataset.edgehit; if (eh != null){ openEdgeAdj(+eh); return; } }
   // 空いている所を押す → そこに車を置く
   { const svg = $("svg"), p = svg.createSVGPoint(); p.x = e.clientX; p.y = e.clientY; const q = p.matrixTransform(svg.getScreenCTM().inverse());
     if (inLot(curTab, q.x, q.y)) tapEmpty(q.x, q.y); else if (target){ target = null; render(); } }
@@ -5118,7 +5161,7 @@ function renderBanner(){
   if (!isLot(curTab)) return;
   const lot = curTab, st = allStalls(lot), ns = st.length, nv = st.filter(s => assignOf(s.r.id, s.i)).length, fx = fixedOf(lot), lk = isLocked(lot);
   let nm, sb = "", cls = "";
-  const oc = overCount(lot), ocH = oc ? `<div class="lockline" style="border:2px solid #dc2626;background:#fef2f2;color:#991b1b;"><span>⚠ 敷地線からはみ出している車 ${oc}台（赤い点線）</span>${trial ? `<button id="trShift">📐 1台ずつずらす</button>` : ""}</div>` : "";
+  const oc = overCount(lot), ocH = oc ? `<div class="lockline" style="border:2px solid #dc2626;background:#fef2f2;color:#991b1b;"><span>⚠ 敷地線からはみ出している車 ${oc}台（赤い点線）<br><small style="font-weight:700;">実際は入るときは、黄色い敷地線を押すと線を外へずらせます</small></span>${trial ? `<button id="trShift">📐 1台ずつずらす</button>` : ""}</div>` : "";
   if (trial){
     $("statCard").className = "statcard tr";
     $("statCard").innerHTML = `<div style="min-width:0;"><div class="nm">🧪 ${esc(trial.name)}</div><div class="sb">ここで動かしても、今の配置は変わりません</div></div>
