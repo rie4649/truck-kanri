@@ -673,7 +673,7 @@
 </head>
 <body>
 <header>
-  <h1>🚚 トラック管理 <span class="ver" id="appVerTxt" title="アプリの版">版 9.1</span></h1>
+  <h1>🚚 トラック管理 <span class="ver" id="appVerTxt" title="アプリの版">版 9.2</span></h1>
   <button id="installBtn" hidden>📲 ホーム画面に追加</button>
   <div class="sub">TRUCK ・ 車両カルテと置き場の配置図</div>
   <div class="tab-bar">
@@ -1507,16 +1507,34 @@ function ppm(lot){   // 測った辺ぜんぶに合う縮尺(1mあたりのピ�
 }
 // 2本以上測ったら、測った長さに合うように敷地の形を作り直す(向きは写真のまま。合わない分は測っていない辺で吸収)
 let shapeSig = {};
+/* 版9.2：写真からなぞった敷地線が実際とずれている辺を、平行に外へ(＋)・内へ(−)ずらす。off＝{辺の番号: m} */
+function edgeOffs(lot){ const c = lotCalib(lot), o = (c && c.off) || {}, R = {}; Object.keys(o).forEach(i => { const v = +o[i]; if (v && isFinite(v)) R[i] = v; }); return R; }
+function calExtra(lot, cal){ const c = lotCalib(lot) || {}; if (c.off && Object.keys(c.off).length && cal.off == null) cal.off = Object.assign({}, c.off); return cal; }
+function applyOffs(lot, P, O){
+  const n = P.length; if (!Object.keys(O).length || n < 3) return P;
+  const k = ppm(lot); let A = 0; for (let j = 0; j < n; j++){ const a = P[j], b = P[(j+1) % n]; A += a[0]*b[1] - b[0]*a[1]; }
+  const sg = A > 0 ? 1 : -1;
+  const ln = P.map((a, j) => { const b = P[(j+1) % n], dx = b[0]-a[0], dy = b[1]-a[1], d = Math.hypot(dx, dy); if (d < 1e-6) return null;
+    const u = [dx/d, dy/d], nv = [u[1]*sg, -u[0]*sg], o = (+O[j] || 0) * k; return { u, nv, o, q:[a[0] + nv[0]*o, a[1] + nv[1]*o] }; });
+  return P.map((p, i) => {
+    const L1 = ln[(i - 1 + n) % n], L2 = ln[i], o1 = L1 ? L1.o : 0, o2 = L2 ? L2.o : 0; if (!o1 && !o2) return p.slice();
+    const fb = () => [p[0] + (L1 ? L1.nv[0]*o1 : 0) + (L2 ? L2.nv[0]*o2 : 0), p[1] + (L1 ? L1.nv[1]*o1 : 0) + (L2 ? L2.nv[1]*o2 : 0)];
+    if (!L1 || !L2) return fb();
+    const cr = L1.u[0]*L2.u[1] - L1.u[1]*L2.u[0]; if (Math.abs(cr) < 0.05) return fb();   // ほぼまっすぐつながる角
+    const wx = L2.q[0]-L1.q[0], wy = L2.q[1]-L1.q[1], t = (wx*L2.u[1] - wy*L2.u[0]) / cr, r = [L1.q[0] + L1.u[0]*t, L1.q[1] + L1.u[1]*t];
+    return Math.hypot(r[0]-p[0], r[1]-p[1]) > 6 * Math.max(Math.abs(o1), Math.abs(o2)) ? fb() : r;   // とがりすぎる角は動かしすぎない
+  }).map(q => [Math.round(q[0] * 10) / 10, Math.round(q[1] * 10) / 10]);
+}
 function syncShape(lot){
-  const E = measEdges(lot), sig = JSON.stringify(E); if (shapeSig[lot] === sig) return; shapeSig[lot] = sig;
+  const E = measEdges(lot), O = edgeOffs(lot), sig = JSON.stringify([E, O]); if (shapeSig[lot] === sig) return; shapeSig[lot] = sig;
   const P0 = LOTS0[lot], n = P0.length, keys = Object.keys(E);
-  if (keys.length < 2){ LOTS[lot].lot = P0.map(p => p.slice()); return; }
+  if (keys.length < 2){ LOTS[lot].lot = applyOffs(lot, P0.map(p => p.slice()), O); return; }
   const s = ppm(lot), t = P0.map((p, j) => { const q = P0[(j+1) % n], dx = q[0]-p[0], dy = q[1]-p[1], d = Math.hypot(dx, dy) || 1; return E[j] > 0 ? [dx/d*E[j]*s, dy/d*E[j]*s] : [dx, dy]; });
   const ex = t.reduce((a, v) => a + v[0], 0), ey = t.reduce((a, v) => a + v[1], 0);
   const wt = t.map((v, j) => Math.hypot(v[0], v[1]) * (E[j] > 0 ? 0.02 : 1)), W = wt.reduce((a, v) => a + v, 0) || 1;
   const P = [P0[0].slice()]; for (let j = 0; j < n - 1; j++){ const q = P[j]; P.push([q[0] + t[j][0] - ex*wt[j]/W, q[1] + t[j][1] - ey*wt[j]/W]); }
   const c0 = P0.reduce((a, p) => [a[0]+p[0]/n, a[1]+p[1]/n], [0,0]), c1 = P.reduce((a, p) => [a[0]+p[0]/n, a[1]+p[1]/n], [0,0]);
-  LOTS[lot].lot = P.map(p => [Math.round((p[0] - c1[0] + c0[0]) * 10) / 10, Math.round((p[1] - c1[1] + c0[1]) * 10) / 10]);
+  LOTS[lot].lot = applyOffs(lot, P.map(p => [Math.round((p[0] - c1[0] + c0[0]) * 10) / 10, Math.round((p[1] - c1[1] + c0[1]) * 10) / 10]), O);
 }
 function syncShapes(){ Object.keys(LOTS).forEach(syncShape); }
 function baseEdge(lot){ const c = lotCalib(lot); return c ? c.edge : DEF_BASE[lot]; }
@@ -1977,7 +1995,7 @@ function boHtml(lot){ if (noLines(lot)) return ""; const e = edgeInfo(lot, baseE
     <div class="mrow" style="flex-wrap:wrap;gap:6px;">${lk ? `<b>${bo ? `${(bo > 0 ? out : inn).w}へ ${Math.abs(bo).toFixed(2)}m` : "辺の上（動かしていない）"}</b>` : `<button data-bop="0.5" style="width:auto;padding:0 12px;white-space:nowrap;font-size:15px;">${out.ar}${out.w}へ0.5m</button><span class="vu">${out.w}へ</span><input class="vin" type="number" inputmode="decimal" step="0.1" data-boin="1" value="${bo ? bo.toFixed(2) : "0"}"><span class="vu">m</span><button data-bop="-0.5" style="width:auto;padding:0 12px;white-space:nowrap;font-size:15px;">${inn.ar}${inn.w}へ0.5m</button>${bo ? `<button data-bop="x" style="width:auto;padding:0 12px;white-space:nowrap;font-size:15px;">辺にもどす</button>` : ""}`}</div>
     <div class="status">${out.w}へはプラス、${inn.w}へはマイナスの数字です。</div></div>`; }
 function setBo(lot, v){ if (guardLock()) return; v = Math.max(-50, Math.min(50, Math.round(v * 100) / 100)); if (Math.abs(v - baseOff(lot)) < 0.005) return;
-  pushUndo(); layout.calib = layout.calib || {}; const E = measEdges(lot), be = baseEdge(lot), cal = { edge: be, realM: E[be] || 0, edges: E }; if (v) cal.bo = v;
+  pushUndo(); layout.calib = layout.calib || {}; const E = measEdges(lot), be = baseEdge(lot), cal = calExtra(lot, { edge: be, realM: E[be] || 0, edges: E }); if (v) cal.bo = v;
   layout.calib[lot] = cal; render(); if (typeof renderMeas === "function" && !$("measSheet").hidden) renderMeas();
   save({ calib:{ [lot]: cal } }, v ? `0の線を ${dirWord(v > 0 ? [-edgeInfo(lot, be).n[0], -edgeInfo(lot, be).n[1]] : edgeInfo(lot, be).n).w}へ ${Math.abs(v).toFixed(2)}m にしました` : "0の線を辺にもどしました"); }
 document.addEventListener("click", ev => { const t = ev.target.closest && ev.target.closest("[data-bop]"); if (!t) return; const lot = curTab, d = t.dataset.bop; setBo(lot, d === "x" ? 0 : baseOff(lot) + +d); });
@@ -2429,7 +2447,7 @@ function renderMeas(){
       ${rows}
       ${Object.keys(E).length ? `<div class="okbox">✓ ${Object.keys(E).length}本の実測で合わせています（数字の「約」が消えます）<button class="btn small" id="msClear" style="margin-left:8px;">測る前にもどす</button></div>` : ""}
       <div class="status">車の大きさ（車両台帳の寸法）は変わりません。入れた数字は、最適案・白線図・印刷・PDFにも使います。</div>
-    </div>`;
+    </div>` + offHtml(lot);
   $("msBody").querySelectorAll("[data-mein]").forEach(inp => {
     inp.onfocus = () => { if (measEdge !== +inp.dataset.mein){ measEdge = +inp.dataset.mein; render(); $("msBody").querySelectorAll("[data-mer]").forEach(r => r.style.background = +r.dataset.mer === measEdge ? "#fef9c3" : ""); } };
     inp.onchange = () => { const i = +inp.dataset.mein, v = inp.value === "" ? 0 : parseFloat(inp.value);
@@ -2437,14 +2455,48 @@ function renderMeas(){
       pushUndo(); const E2 = measEdges(lot); if (v > 0) E2[i] = Math.round(v * 100) / 100; else delete E2[i];
       layout.calib = layout.calib || {};
       const be = baseEdge(lot), bo = c && +c.bo || 0;
-      if (!Object.keys(E2).length && be === DEF_BASE[lot] && !bo){ delete layout.calib[lot]; save({ calib:{ [lot]: FV.delete() } }, "測る前にもどしました"); }
-      else { layout.calib[lot] = { edge: be, realM: E2[be] || 0, edges: E2 }; if (bo) layout.calib[lot].bo = bo; save({ calib:{ [lot]: layout.calib[lot] } }, `✓ ${edgeName(lot, i)} ${v > 0 ? v.toFixed(2) + "m" : "を消しました"}${Object.keys(E2).length >= 2 ? "。形も作り直しました" : ""}`); }
+      if (!Object.keys(E2).length && be === DEF_BASE[lot] && !bo && !Object.keys(edgeOffs(lot)).length){ delete layout.calib[lot]; save({ calib:{ [lot]: FV.delete() } }, "測る前にもどしました"); }
+      else { layout.calib[lot] = calExtra(lot, { edge: be, realM: E2[be] || 0, edges: E2 }); if (bo) layout.calib[lot].bo = bo; save({ calib:{ [lot]: layout.calib[lot] } }, `✓ ${edgeName(lot, i)} ${v > 0 ? v.toFixed(2) + "m" : "を消しました"}${Object.keys(E2).length >= 2 ? "。形も作り直しました" : ""}`); }
       renderMeas(); render(); };
   });
+  bindOff(lot);
   const mc = $("msClear"); if (mc) mc.onclick = () => { pushUndo(); const be = baseEdge(lot), bo = c && +c.bo || 0;
-    if (be === DEF_BASE[lot] && !bo){ delete layout.calib[lot]; save({ calib:{ [lot]: FV.delete() } }, "測る前の縮尺にもどしました"); }
-    else { layout.calib[lot] = Object.assign({ edge: be, realM: 0, edges: {} }, bo ? { bo } : {}); save({ calib:{ [lot]: layout.calib[lot] } }, "測る前の縮尺にもどしました"); }
+    if (be === DEF_BASE[lot] && !bo && !Object.keys(edgeOffs(lot)).length){ delete layout.calib[lot]; save({ calib:{ [lot]: FV.delete() } }, "測る前の縮尺にもどしました"); }
+    else { layout.calib[lot] = calExtra(lot, Object.assign({ edge: be, realM: 0, edges: {} }, bo ? { bo } : {})); save({ calib:{ [lot]: layout.calib[lot] } }, "測る前の縮尺にもどしました"); }
     renderMeas(); render(); };
+}
+/* 版9.2：敷地線をずらす(写真の線と実際がちがう辺だけ) */
+function offHtml(lot){
+  const O = edgeOffs(lot), lk = isLocked(lot), be = baseEdge(lot);
+  const rows = edgeList(lot).map(x => { const v = O[x.i] || 0;
+    return `<div class="mrow${x.i === measEdge ? " on" : ""}" data-ofr="${x.i}" style="gap:6px;flex-wrap:wrap;${x.i === measEdge ? "background:#fef9c3;border-radius:10px;padding:4px 6px;" : ""}">
+      <span style="flex:1;min-width:120px;"><b>${esc(edgeName(lot, x.i))}</b>${v ? `<br><small style="color:#1d4ed8;font-weight:900;">${v > 0 ? "外へ" : "内へ"} ${Math.abs(v).toFixed(2)}m ずらし中</small>` : ""}${!noLines(lot) && x.i === be && v ? `<br><small style="color:#b45309;font-weight:800;">0の線の辺なので、白線もいっしょに動きます</small>` : ""}</span>
+      ${lk ? `<b>${v ? (v > 0 ? "+" : "") + v.toFixed(2) + "m" : "—"}</b>` : `<button data-ofop="${x.i}|-0.1">−</button><input class="vin" type="number" inputmode="decimal" step="0.05" data-ofin="${x.i}" value="${v ? v : ""}" placeholder="0" style="width:80px;"><span class="vu">m</span><button data-ofop="${x.i}|0.1">＋</button>`}</div>`; }).join("");
+  return `<div class="box" style="gap:8px;">
+      <div class="bigline">敷地線をずらす（写真の線と実際がちがうとき）</div>
+      <div class="status">実際には車が入るのに「はみ出し」と出るときは、その辺を<b>外へ（＋）</b>ずらしてください。車の大きさ・縮尺は変わりません。<b>0.1m</b>ずつ動かして、赤い点線が消える所に合わせると確かめやすいです。</div>
+      ${rows}
+      ${Object.keys(O).length && !lk ? `<button class="btn small" id="ofClear">ずらしを全部もどす</button>` : ""}
+    </div>`;
+}
+function setOff(lot, i, v){
+  if (guardLock()) return; v = Math.max(-5, Math.min(5, Math.round(v * 100) / 100)); const O = edgeOffs(lot); if (Math.abs(v - (O[i] || 0)) < 0.005) return;
+  pushUndo(); layout.calib = layout.calib || {}; const c = lotCalib(lot), E = measEdges(lot), be = baseEdge(lot);
+  const off = Object.assign({}, (c && c.off) || {}); off[i] = v;   // 0 も残す(保存は足し合わせなので、消すと前の値が残るため)
+  const cal = Object.assign({ edge: be, realM: E[be] || 0, edges: E }, c && c.bo ? { bo:c.bo } : {}, { off });
+  layout.calib[lot] = cal; render(); renderMeas();
+  save({ calib:{ [lot]: cal } }, v ? `${edgeName(lot, i)}を${v > 0 ? "外" : "内"}へ ${Math.abs(v).toFixed(2)}m ずらしました` : `${edgeName(lot, i)}を写真の線にもどしました`);
+}
+function bindOff(lot){
+  const b = $("msBody"); if (!b) return;
+  b.querySelectorAll("[data-ofop]").forEach(btn => btn.onclick = () => { const [i, d] = btn.dataset.ofop.split("|"); measEdge = +i; setOff(lot, +i, (edgeOffs(lot)[i] || 0) + +d); });
+  b.querySelectorAll("[data-ofin]").forEach(inp => {
+    inp.onfocus = () => { if (measEdge !== +inp.dataset.ofin){ measEdge = +inp.dataset.ofin; render(); } };
+    inp.onchange = () => { const v = inp.value === "" ? 0 : parseFloat(inp.value); if (!isFinite(v) || Math.abs(v) > 5){ toast("−5〜5m で入れてください"); return; } setOff(lot, +inp.dataset.ofin, v); }; });
+  const oc = $("ofClear"); if (oc) oc.onclick = () => { if (guardLock()) return; pushUndo(); const c = lotCalib(lot) || {}, off = {};
+    Object.keys(c.off || {}).forEach(i => off[i] = 0); const E = measEdges(lot), be = baseEdge(lot);
+    const cal = Object.assign({ edge: be, realM: E[be] || 0, edges: E }, c.bo ? { bo:c.bo } : {}, { off }); layout.calib[lot] = cal; render(); renderMeas();
+    save({ calib:{ [lot]: cal } }, "敷地線を写真の線にもどしました"); };
 }
 function drawMeasMarks(svg, fs){
   if (measEdge == null || $("measSheet").hidden) return;
@@ -4912,9 +4964,9 @@ function paneLines(lot, body, foot){
   body.innerHTML = h;
   foot.innerHTML = `<div class="two"><button class="bigbtn out" id="fSave" style="border-color:#059669;color:#059669;">🔒 確定</button><button class="bigbtn" id="fPrint">印刷（${pagesOf(lot)}枚）</button></div>`;
   body.querySelectorAll("[data-edge]").forEach(b => b.onclick = () => { layout.calib = layout.calib || {}; const cu = lotCalib(lot);
-    const E = measEdges(lot), ne = +b.dataset.edge; layout.calib[lot] = { edge: ne, realM: E[ne] || 0, edges: E }; save({ calib:{ [lot]: layout.calib[lot] } }); render(); });
+    const E = measEdges(lot), ne = +b.dataset.edge; layout.calib[lot] = calExtra(lot, Object.assign({ edge: ne, realM: E[ne] || 0, edges: E }, cu && cu.bo ? { bo:cu.bo } : {})); save({ calib:{ [lot]: layout.calib[lot] } }); render(); });
   const ok = $("calibOk"); if (ok) ok.onclick = () => { const v = parseFloat($("realM").value); if (!(v > 1)){ toast("長さを入れてください"); return; }
-    pushUndo(); layout.calib = layout.calib || {}; const E = measEdges(lot); E[be] = v; const bo0 = (lotCalib(lot) || {}).bo; layout.calib[lot] = Object.assign({ edge:be, realM:v, edges:E }, bo0 ? { bo:bo0 } : {}); showCalib = false; render(); save({ calib:{ [lot]: layout.calib[lot] } }, "決めました"); };
+    pushUndo(); layout.calib = layout.calib || {}; const E = measEdges(lot); E[be] = v; const bo0 = (lotCalib(lot) || {}).bo; layout.calib[lot] = calExtra(lot, Object.assign({ edge:be, realM:v, edges:E }, bo0 ? { bo:bo0 } : {})); showCalib = false; render(); save({ calib:{ [lot]: layout.calib[lot] } }, "決めました"); };
   const rc = $("reCalib"); if (rc) rc.onclick = openMeas;
   $("fSave").onclick = askFix;
   $("fPrint").onclick = () => openPreview();
