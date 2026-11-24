@@ -673,7 +673,7 @@
 </head>
 <body>
 <header>
-  <h1>🚚 トラック管理 <span class="ver" id="appVerTxt" title="アプリの版">版 9.3</span></h1>
+  <h1>🚚 トラック管理 <span class="ver" id="appVerTxt" title="アプリの版">版 9.4</span></h1>
   <button id="installBtn" hidden>📲 ホーム画面に追加</button>
   <div class="sub">TRUCK ・ 車両カルテと置き場の配置図</div>
   <div class="tab-bar">
@@ -777,6 +777,7 @@
     <div class="maptgl"><button id="btnPhotos" hidden>📷</button><button id="btnZone" hidden>ゾーン</button><button data-ph="0">図</button><button data-ph="1">写真</button><button id="btn3d">3D</button></div>
     <div class="v3d" id="v3d" hidden><div class="v3dhint">1本指で回す・2本指で近づく　（見るだけ）</div><div class="v3dbtns" id="v3dBtns" hidden><button id="v3d8">🏗 ⑧倉庫-2を近くで見る</button><button id="v3dAll">🗺 全体</button><button id="v3dImg">📷 画像で保存</button></div></div>
     <button class="phonly" id="phOnly">👁 写真だけ</button>
+    <button class="phonly" id="dimTgl" style="bottom:100px;" hidden>📏 数字：少なめ</button>
     <button class="zonetgl" id="zoneTgl" hidden>🏷 ゾーン</button>
     <div class="carinfo" id="carInfo" hidden></div>
   </div>
@@ -1041,7 +1042,7 @@
 
 <script>
 /* ===== アプリの版（直すたびに上げる。画面の上と印刷に出る） ===== */
-const APP_VER = "9.3", APP_VER_DATE = "2026年11月24日"; try { document.getElementById("appVerTxt").textContent = "版 " + APP_VER; } catch(e){}
+const APP_VER = "9.4", APP_VER_DATE = "2026年11月24日"; try { document.getElementById("appVerTxt").textContent = "版 " + APP_VER; } catch(e){}
 /* ===== Firebase ===== */
 firebase.initializeApp({
   apiKey: "AIzaSyD99Mx0MnGpLSQjV7830bS7-gdCBSM9DGY",
@@ -1491,6 +1492,9 @@ const STEP_T = { dir:"向きと幅", rows:"白線を置く", cars:"車を入れ�
 let step = "dir", selRow = null, selStall = 0, rowMode = "all", target = null, pickQ = "", placing = false, editRowId = null, showCalib = false;
 let draft = { dir:"v", W:3.2, L:null, head:"yard", cars:[] };   // L が null のときは「いちばん長い車＋1m」
 let mvStep = 0.5, adjStep = 0.1;
+/* 版9.4：図の数字の出し方 */
+let dimMode = "key"; try { const dm0 = localStorage.getItem("truck_dims"); if (dm0 === "all" || dm0 === "none") dimMode = dm0; } catch(e){}
+const DIM_T = { key:"📏 数字：少なめ", all:"📏 数字：全部", none:"📏 数字：なし" };
 showPhoto = true;   // 航空写真を見ながら決めるのがいちばんわかりやすいので、はじめは写真
 try { if (localStorage.getItem("truck_photo") === "0") showPhoto = false; } catch(e){}
 
@@ -2218,7 +2222,8 @@ function render(){
   const tt=el("text",{x:bx+5*k,y:by-9,"text-anchor":"middle","font-size":fs,fill:showPhoto?"#fff":"#1e293b"},svg); tt.textContent="10m"; }
   $("stage").classList.toggle("placing", placing);
   if (keepMode) keepUi(); else if (!zEdit && !(drg && drg.moved)){ $("mapHint").hidden = !placing; $("mapHint").textContent = "並べはじめる所をタップ"; }
-  if (!showPhoto) drawDimLines(svg, dimLines(lot), fs);
+  if (!showPhoto) drawDimLines(svg, dimPick(dimLines(lot)), fs);
+  { const dt = $("dimTgl"); if (dt){ dt.hidden = showPhoto || photoOnly; dt.textContent = DIM_T[dimMode]; dt.classList.toggle("on", dimMode !== "key"); } }
   $("undoFab").hidden = !undoStack.length || isLocked(lot);
   drawMeasMarks(svg, fs);
   setTimeout(showCarInfo, 0);
@@ -2883,7 +2888,7 @@ function dimLines(lot){
     edgesOf(P).slice(0, 2).forEach(([a, b]) => { const len = Math.hypot(b[0]-a[0], b[1]-a[1]) / k, isW = Math.abs(len - r.W) < Math.abs(len - r.L);
       const m = [(a[0]+b[0])/2, (a[1]+b[1])/2], dx = m[0]-c[0], dy = m[1]-c[1], dd = Math.hypot(dx, dy) || 1, ox = dx/dd*off, oy = dy/dd*off;
       const isW2 = Math.abs(len - r.W) < 0.02;
-      out.push({ kind:"frame", a:[a[0]+ox, a[1]+oy], b:[b[0]+ox, b[1]+oy], text:`${isW2 ? "枠の幅" : "枠の長さ"} ${ab}${len.toFixed(2)}m` }); });
+      out.push({ kind:"frame", rid:r.id, a:[a[0]+ox, a[1]+oy], b:[b[0]+ox, b[1]+oy], text:`${isW2 ? "枠の幅" : "枠の長さ"} ${ab}${len.toFixed(2)}m` }); });
   });
   // となりの車とのすき間(同じ列のとなりどうし)
   cl.forEach(c => { const nx = cl.find(x => x.r.id === c.r.id && x.i === c.i + 1); if (!nx) return;
@@ -2894,13 +2899,13 @@ function dimLines(lot){
     const lo = Math.max(Math.min(...pa), Math.min(...pb)), hi = Math.min(Math.max(...pa), Math.max(...pb));
     const side = dot([ctrB[0]-ctrA[0], ctrB[1]-ctrA[1]], N) >= 0 ? 1 : -1, Ns = [N[0]*side, N[1]*side];
     const ea = Math.max(...c.cp.map(p => dot(p, Ns))), eb = Math.min(...nx.cp.map(p => dot(p, Ns)));
-    if (hi - lo < 0.5*k){ const cp = closestPair(c.cp, nx.cp); if (cp && cp.d >= 1) out.push({ kind:"gap", a:cp.p, b:cp.q, text:`${ab}${(cp.d / k).toFixed(2)}m` }); return; }
+    if (hi - lo < 0.5*k){ const cp = closestPair(c.cp, nx.cp); if (cp && cp.d >= 1) out.push({ kind:"gap", cars:[[c.r.id, c.i], [nx.r.id, nx.i]], m: cp.d / k, a:cp.p, b:cp.q, text:`${ab}${(cp.d / k).toFixed(2)}m` }); return; }
     const m = (lo + hi) / 2, gap = eb - ea; if (gap < 1) return;
     const A = [F[0]*m + Ns[0]*ea, F[1]*m + Ns[1]*ea], B = [F[0]*m + Ns[0]*eb, F[1]*m + Ns[1]*eb];
-    out.push({ kind:"gap", a:A, b:B, text:`${ab}${(gap / k).toFixed(2)}m` }); });
+    out.push({ kind:"gap", cars:[[c.r.id, c.i], [nx.r.id, nx.i]], m: gap / k, a:A, b:B, text:`${ab}${(gap / k).toFixed(2)}m` }); });
   // 敷地線まで(3m以内の車だけ)
   cl.forEach(c => { if (c.toLot < 0 || c.toLot > 3) return; const cp = closestPair(c.cp, L); if (!cp || cp.d < 1) return;
-    out.push({ kind:"edge", a:cp.p, b:cp.q, text:`敷地線まで ${ab}${(cp.d / k).toFixed(2)}m` }); });
+    out.push({ kind:"edge", cars:[[c.r.id, c.i]], m: cp.d / k, a:cp.p, b:cp.q, text:`敷地線まで ${ab}${(cp.d / k).toFixed(2)}m` }); });
   return out;
 }
 function drawDimLines(svg, list, fs, kinds){
@@ -2916,6 +2921,17 @@ function drawDimLines(svg, list, fs, kinds){
     t.textContent = d.text;
   });
 }
+
+/* 版9.4：図の数字が多すぎて見づらいので、出す数字を選べる。
+   少なめ＝せまい所(すき間・敷地線まで 0.5m未満)と、えらんでいる車のまわりだけ／全部／なし */
+function dimPick(list){
+  if (dimMode === "all") return list;
+  const sel = target ? [target.rowId, +target.i] : null, isSel = d => sel && (d.cars ? d.cars.some(c => c[0] === sel[0] && +c[1] === sel[1]) : d.rid === sel[0]);
+  if (dimMode === "none") return list.filter(isSel);
+  return list.filter(d => isSel(d) || (d.kind !== "frame" && d.m != null && d.m < 0.5));
+}
+$("dimTgl").onclick = () => { dimMode = dimMode === "key" ? "all" : dimMode === "all" ? "none" : "key"; try { localStorage.setItem("truck_dims", dimMode); } catch(e){}
+  toast(dimMode === "key" ? "せまい所（0.5m未満）と、えらんだ車の数字だけ出します" : dimMode === "all" ? "数字を全部出します" : "数字を消しました（車を押すと、その車の数字だけ出ます）"); render(); };
 
 /* ===== この車の位置を数字で動かす(元の枠の位置から何m・何度) ===== */
 function posHtml(r, i){
